@@ -40,15 +40,21 @@ impl<const P: u8> Decimal<P>
         Decimal { coeff: val }
     }
 
+    /// Number of fractional decimal digits
     #[inline]
     const fn precision(self) -> u8 {
         P
     }
 
+    /// Additive identity
     pub const ZERO: Decimal<P> = Decimal { coeff: 0i128 };
+    /// Multiplicative identity
     pub const ONE: Decimal<P> = Decimal { coeff: 10i128.pow(P as u32) };
+    /// Multiplicative negator
     pub const NEG_ONE: Decimal<P> = Decimal { coeff: -(10i128.pow(P as u32))};
+    /// Equivalent of 2
     pub const TWO: Decimal<P> = Decimal { coeff: 2i128 * 10i128.pow(P as u32) };
+    /// Equivalent of 10
     pub const TEN: Decimal<P> = Decimal { coeff: 10i128.pow((P + 1) as u32) };
 }
 
@@ -56,6 +62,7 @@ impl<const P: u8> Default for Decimal<P>
     where
         PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
 {
+    /// Default value: Decimal::<P>::ZERO
     fn default() -> Self {
         Self::ZERO
     }
