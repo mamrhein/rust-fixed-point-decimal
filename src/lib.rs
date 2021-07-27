@@ -13,6 +13,8 @@
 #![feature(const_evaluatable_checked)]
 #![feature(associated_type_bounds)]
 
+mod powers_of_ten;
+
 pub const MAX_PREC: u8 = 30;
 
 pub(crate) trait True {}
