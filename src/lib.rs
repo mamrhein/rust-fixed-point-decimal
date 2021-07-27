@@ -56,6 +56,12 @@ impl<const P: u8> Decimal<P>
     pub const TWO: Decimal<P> = Decimal { coeff: 2i128 * 10i128.pow(P as u32) };
     /// Equivalent of 10
     pub const TEN: Decimal<P> = Decimal { coeff: 10i128.pow((P + 1) as u32) };
+    /// Maximum value representable by this type
+    pub const MAX: Decimal<P> = Decimal { coeff: i128::MAX };
+    /// Minimum value representable by this type
+    pub const MIN: Decimal<P> = Decimal { coeff: i128::MIN };
+    /// Smallest absolute difference between two non-equal values of this type
+    pub const DELTA: Decimal<P> = Decimal { coeff: 1i128 };
 }
 
 impl<const P: u8> Default for Decimal<P>
@@ -97,6 +103,9 @@ mod tests {
                 assert_eq!(Decimal::<$p>::TWO.coeff,
                            Decimal::<$p>::ONE.coeff * 2);
                 assert_eq!(Decimal::<$p>::TEN.coeff, 10i128.pow($p + 1));
+                assert_eq!(Decimal::<$p>::MAX.coeff, i128::MAX);
+                assert_eq!(Decimal::<$p>::MIN.coeff, i128::MIN);
+                assert_eq!(Decimal::<$p>::DELTA.coeff, 1i128);
             )*
             }
         }
