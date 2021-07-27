@@ -47,6 +47,9 @@ impl<const P: u8> Decimal<P>
 
     pub const ZERO: Decimal<P> = Decimal { coeff: 0i128 };
     pub const ONE: Decimal<P> = Decimal { coeff: 10i128.pow(P as u32) };
+    pub const NEG_ONE: Decimal<P> = Decimal { coeff: -(10i128.pow(P as u32))};
+    pub const TWO: Decimal<P> = Decimal { coeff: 2i128 * 10i128.pow(P as u32) };
+    pub const TEN: Decimal<P> = Decimal { coeff: 10i128.pow((P + 1) as u32) };
 }
 
 impl<const P: u8> Default for Decimal<P>
@@ -82,6 +85,11 @@ mod tests {
                 assert_eq!(Decimal::<$p>::ZERO.coeff, 0i128);
                 assert_eq!(Decimal::<$p>::default().coeff, 0i128);
                 assert_eq!(Decimal::<$p>::ONE.coeff, 10i128.pow($p));
+                assert_eq!(Decimal::<$p>::NEG_ONE.coeff,
+                           Decimal::<$p>::ONE.coeff.checked_neg().unwrap());
+                assert_eq!(Decimal::<$p>::TWO.coeff,
+                           Decimal::<$p>::ONE.coeff * 2);
+                assert_eq!(Decimal::<$p>::TEN.coeff, 10i128.pow($p + 1));
             )*
             }
         }
