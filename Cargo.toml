@@ -14,3 +14,4 @@ keywords = ["number", "decimal", "fixed-point", "arithmetics"]
 categories = ["data-structures", "mathematics"]
 
 [dependencies]
+num = "0.4"
