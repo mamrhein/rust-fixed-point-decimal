@@ -14,6 +14,7 @@
 #![feature(associated_type_bounds)]
 
 mod powers_of_ten;
+mod rounding;
 
 pub const MAX_PREC: u8 = 30;
 
