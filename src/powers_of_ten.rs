@@ -53,4 +53,3 @@ const POWERS_OF_10: [u128; 39] = [
 pub(crate) fn ten_pow(n: u8) -> u128 {
     POWERS_OF_10[n as usize]
 }
-

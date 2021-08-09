@@ -25,16 +25,16 @@ impl True for PrecLimitCheck<true> {}
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) struct Decimal<const P: u8>
-    where
-        Decimal<P>: Sized,
-        PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+where
+    Decimal<P>: Sized,
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
 {
     coeff: i128,
 }
 
 impl<const P: u8> Decimal<P>
-    where
-        PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+where
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
 {
     fn new_raw(val: i128) -> Self {
         Decimal { coeff: val }
@@ -49,13 +49,21 @@ impl<const P: u8> Decimal<P>
     /// Additive identity
     pub const ZERO: Decimal<P> = Decimal { coeff: 0i128 };
     /// Multiplicative identity
-    pub const ONE: Decimal<P> = Decimal { coeff: 10i128.pow(P as u32) };
+    pub const ONE: Decimal<P> = Decimal {
+        coeff: 10i128.pow(P as u32),
+    };
     /// Multiplicative negator
-    pub const NEG_ONE: Decimal<P> = Decimal { coeff: -(10i128.pow(P as u32))};
+    pub const NEG_ONE: Decimal<P> = Decimal {
+        coeff: -(10i128.pow(P as u32)),
+    };
     /// Equivalent of 2
-    pub const TWO: Decimal<P> = Decimal { coeff: 2i128 * 10i128.pow(P as u32) };
+    pub const TWO: Decimal<P> = Decimal {
+        coeff: 2i128 * 10i128.pow(P as u32),
+    };
     /// Equivalent of 10
-    pub const TEN: Decimal<P> = Decimal { coeff: 10i128.pow((P + 1) as u32) };
+    pub const TEN: Decimal<P> = Decimal {
+        coeff: 10i128.pow((P + 1) as u32),
+    };
     /// Maximum value representable by this type
     pub const MAX: Decimal<P> = Decimal { coeff: i128::MAX };
     /// Minimum value representable by this type
@@ -65,8 +73,8 @@ impl<const P: u8> Decimal<P>
 }
 
 impl<const P: u8> Default for Decimal<P>
-    where
-        PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+where
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
 {
     /// Default value: Decimal::<P>::ZERO
     fn default() -> Self {
