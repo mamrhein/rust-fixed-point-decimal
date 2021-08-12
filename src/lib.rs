@@ -13,6 +13,8 @@
 #![feature(const_evaluatable_checked)]
 #![feature(associated_type_bounds)]
 
+mod errors;
+mod from_str;
 mod powers_of_ten;
 mod rounding;
 
