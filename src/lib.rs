@@ -13,21 +13,25 @@
 #![feature(const_evaluatable_checked)]
 #![feature(associated_type_bounds)]
 
+use crate::prec_constraints::{PrecLimitCheck, True};
+
 mod errors;
 mod from_str;
 mod powers_of_ten;
 mod rounding;
 
+mod prec_constraints {
+    pub trait True {}
+
+    pub struct PrecLimitCheck<const CHECK: bool> {}
+
+    impl True for PrecLimitCheck<true> {}
+}
+
 pub const MAX_PREC: u8 = 30;
 
-pub(crate) trait True {}
-
-pub(crate) struct PrecLimitCheck<const CHECK: bool> {}
-
-impl True for PrecLimitCheck<true> {}
-
 #[derive(Copy, Clone, Debug)]
-pub(crate) struct Decimal<const P: u8>
+pub struct Decimal<const P: u8>
 where
     Decimal<P>: Sized,
     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
