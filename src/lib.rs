@@ -28,7 +28,7 @@ mod prec_constraints {
     impl True for PrecLimitCheck<true> {}
 }
 
-pub const MAX_PREC: u8 = 30;
+pub const MAX_PREC: u8 = 9;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Decimal<const P: u8>
@@ -99,13 +99,13 @@ mod tests {
         let d: Decimal<5> = Decimal::new_raw(val);
         assert_eq!(d.coeff, val);
         assert_eq!(d.precision(), 5);
-        let d: Decimal<30> = Decimal::new_raw(val);
+        let d: Decimal<9> = Decimal::new_raw(val);
         assert_eq!(d.coeff, val);
-        assert_eq!(d.precision(), 30);
+        assert_eq!(d.precision(), 9);
     }
 
     macro_rules! test_constants_and_default {
-        () => {test_constants_and_default!(0,1,2,17,30);};
+        () => {test_constants_and_default!(0,1,2,7,9);};
         ($($p:expr),*) => {
             #[test]
             fn test_consts() {
