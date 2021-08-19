@@ -43,3 +43,30 @@ impl Display for ParseDecimalError {
 }
 
 impl std::error::Error for ParseDecimalError {}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DecimalError {
+    PrecLimitExceeded,
+    MaxValueExceeded,
+}
+
+impl DecimalError {
+    pub fn _description(&self) -> &str {
+        match self {
+            DecimalError::PrecLimitExceeded => {
+                "Result exceeds the precision limit."
+            }
+            DecimalError::MaxValueExceeded => {
+                "Maximum representable value exceeded."
+            }
+        }
+    }
+}
+
+impl Display for DecimalError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self._description(), f)
+    }
+}
+
+impl std::error::Error for DecimalError {}

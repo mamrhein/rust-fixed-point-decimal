@@ -16,6 +16,7 @@
 use crate::prec_constraints::{PrecLimitCheck, True};
 
 mod errors;
+mod from_int;
 mod from_str;
 mod powers_of_ten;
 mod rounding;
