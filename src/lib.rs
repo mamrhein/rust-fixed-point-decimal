@@ -13,6 +13,8 @@
 #![feature(const_evaluatable_checked)]
 #![feature(associated_type_bounds)]
 
+use std::ops::Neg;
+
 use crate::prec_constraints::{PrecLimitCheck, True};
 
 mod errors;
@@ -90,6 +92,18 @@ where
     }
 }
 
+impl<const P: u8> Neg for Decimal<P>
+where
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+{
+    type Output = Self;
+
+    /// Return -self.
+    fn neg(self) -> Self::Output {
+        Self::Output { coeff: -self.coeff }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::Decimal;
@@ -128,4 +142,14 @@ mod tests {
     }
 
     test_constants_and_default!();
+
+    #[test]
+    fn test_neg() {
+        let val = 1234567890i128;
+        let x: Decimal<2> = Decimal::new_raw(val);
+        let y = -x;
+        assert_eq!(x.coeff, -y.coeff);
+        let z = -y;
+        assert_eq!(x.coeff, z.coeff);
+    }
 }
