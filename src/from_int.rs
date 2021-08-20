@@ -37,41 +37,6 @@ macro_rules! impl_from_int {
 
 impl_from_int!();
 
-// impl<const P: u8> Decimal<P>
-// where
-//     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-// {
-//     #[inline]
-//     pub fn from_int<T>(i: T) -> Self
-//     where
-//         T: Integer + Into<i128>,
-//     {
-//         Decimal {
-//             coeff: i.into() * ten_pow(P) as i128,
-//         }
-//     }
-//
-//     #[inline]
-//     pub fn try_from_i128(i: i128) -> Result<Self, DecimalError> {
-//         let coeff = checked_mul_pow_ten(i, P);
-//         match coeff {
-//             None => Err(DecimalError::MaxValueExceeded),
-//             Some(coeff) => Decimal { coeff },
-//         }
-//     }
-// }
-//
-// impl<const P: u8, T> From<T> for Decimal<P>
-// where
-//     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-//     T: Integer + Into<i128>,
-// {
-//     #[inline]
-//     fn from(i: T) -> Self {
-//         Self::from_int(i)
-//     }
-// }
-
 impl<const P: u8> TryFrom<i128> for Decimal<P>
 where
     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,

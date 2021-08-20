@@ -44,10 +44,16 @@ impl Display for ParseDecimalError {
 
 impl std::error::Error for ParseDecimalError {}
 
+/// An error which can be returned from converting numbers to Decimal or from
+/// binary operators on Decimal.
+///
+/// This error is used as the error type for the [`TryFrom`] implementation of
+/// [`Decimal<P>`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DecimalError {
     PrecLimitExceeded,
     MaxValueExceeded,
+    InfiniteValue,
 }
 
 impl DecimalError {
@@ -58,6 +64,9 @@ impl DecimalError {
             }
             DecimalError::MaxValueExceeded => {
                 "Maximum representable value exceeded."
+            }
+            DecimalError::InfiniteValue => {
+                "Can't convert infinite value to Decimal."
             }
         }
     }
