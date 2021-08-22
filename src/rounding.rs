@@ -34,7 +34,7 @@ pub enum RoundingMode {
 
 impl Default for RoundingMode {
     fn default() -> Self {
-        RoundingMode::RoundHalfUp
+        RoundingMode::RoundHalfEven
     }
 }
 
