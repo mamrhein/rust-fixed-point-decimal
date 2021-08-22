@@ -9,14 +9,13 @@
 
 use std::convert::TryFrom;
 
-use num::{
-    integer::div_mod_floor, traits::float::FloatCore, BigInt, One, Zero,
-};
+use num::{traits::float::FloatCore, BigInt, One};
 
 use crate::{
     errors::DecimalError,
     powers_of_ten::ten_pow,
     prec_constraints::{PrecLimitCheck, True},
+    rounding::div_rounded,
     Decimal,
 };
 
@@ -37,19 +36,16 @@ macro_rules! impl_from_float {
                     return Err(DecimalError::InfiniteValue);
                 }
                 let (mantissa, exponent, sign) = f.integer_decode();
-                if exponent < 0 {
-                    let numer = BigInt::from(sign)
-                        * BigInt::from(mantissa)
-                        * BigInt::from(ten_pow(P));
-                    let denom = BigInt::one() << ((-exponent) as usize);
-                    let (quot, rem) = div_mod_floor(numer, denom);
-                    if rem != BigInt::zero() {
-                        return Err(DecimalError::PrecLimitExceeded);
-                    }
-                    match i128::try_from(quot) {
-                        Err(_) => Err(DecimalError::MaxValueExceeded),
-                        Ok(coeff) => Ok(Decimal { coeff }),
-                    }
+                if exponent < -126 {
+                    Ok(Decimal::ZERO)
+                }
+                else if exponent < 0 {
+                    let numer = i128::from(sign)
+                        * i128::from(mantissa)
+                        * ten_pow(P);
+                    let denom = i128::one() << ((-exponent) as usize);
+                    let coeff = div_rounded(numer, denom, None);
+                    Ok(Decimal { coeff })
                 } else {
                     let mut numer = BigInt::from(mantissa);
                     numer <<= exponent as usize;
@@ -69,28 +65,21 @@ impl_from_float!();
 
 #[cfg(test)]
 mod tests {
-    use num::{traits::float::FloatCore, BigInt, BigRational};
+    use num::traits::float::FloatCore;
 
     use super::*;
 
-    fn check_from_float<const P: u8, T>(numbers: &[T])
+    fn check_from_float<const P: u8, T>(test_data: &[(T, i128)])
     where
         PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
         T: FloatCore,
         Decimal<P>: TryFrom<T>,
     {
-        for f in numbers {
-            let rbig = BigRational::from_float(*f).unwrap();
-            let (num, den) = (rbig.numer(), rbig.denom());
-            let coeff = if den == &BigInt::one() {
-                num.clone() * ten_pow(P)
-            } else {
-                num * ten_pow(P) / den
-            };
-            match Decimal::<P>::try_from(*f) {
+        for (val, coeff) in test_data {
+            match Decimal::<P>::try_from(*val) {
                 Err(_) => panic!("Mismatched test data!"),
                 Ok(d) => {
-                    assert_eq!(BigInt::from(d.coeff), coeff);
+                    assert_eq!(d.coeff, *coeff);
                     assert_eq!(d.precision(), P);
                 }
             }
@@ -99,33 +88,51 @@ mod tests {
 
     #[test]
     fn test_decimal0_from_f32() {
-        let numbers = [
-            i128::MIN as f32,
-            -289.0,
-            -2.,
-            0.0,
-            5.,
-            (i128::MAX / 2) as f32,
+        let test_data = [
+            (i128::MIN as f32, i128::MIN),
+            (-289.04, -289),
+            (-2.5, -2),
+            (0.0, 0),
+            (5.2, 5),
+            ((i128::MAX / 2) as f32, i128::MAX / 2 + 1),
         ];
-        check_from_float::<0, f32>(&numbers)
+        check_from_float::<0, f32>(&test_data)
     }
 
     #[test]
     fn test_decimal4_from_f32() {
-        let numbers = [-289.5, -0.5, 0.0, 37.5];
-        check_from_float::<4, f32>(&numbers)
+        let test_data = [
+            (-289.5, -2895000),
+            (-0.5, -5000),
+            (0.0, 0),
+            (37.0005003, 370005),
+        ];
+        check_from_float::<4, f32>(&test_data)
     }
 
-    // #[test]
-    // fn ratio_from_f64() {
-    //     let numbers = [
-    //         i128::MIN as f64,
-    //         -289.5,
-    //         -0.2,
-    //         0.0,
-    //         1.005,
-    //         (i128::MAX / 2) as f64,
-    //     ];
-    //     check_from_float(&numbers)
-    // }
+    #[test]
+    fn test_decimal0_from_f64() {
+        let test_data = [
+            (i128::MIN as f64, i128::MIN),
+            (-289.4, -289),
+            (-2.5, -2),
+            (0.0, 0),
+            (5.2, 5),
+            ((i128::MAX / 2) as f64, i128::MAX / 2 + 1),
+        ];
+        check_from_float::<0, f64>(&test_data)
+    }
+
+    #[test]
+    fn test_decimal9_from_f64() {
+        let test_data = [
+            (-28900.000000005, -28900000000005),
+            (-5e-7, -500),
+            (1.004e-127, 0),
+            (0.0, 0),
+            (1.0005, 1000500000),
+            (37.0005000033, 37000500003),
+        ];
+        check_from_float::<9, f64>(&test_data)
+    }
 }
