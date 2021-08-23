@@ -53,9 +53,9 @@ pub(crate) fn parse_decimal_literal(
                     return Ok(DecLitParts {
                         num_sign: &lit[num_sign_range],
                         int_part: &lit[int_part_range],
-                        frac_part: &lit[frac_part_range],
-                        exp_sign: &lit[exp_sign_range],
-                        exp_part: &lit[exp_part_range],
+                        frac_part: "",
+                        exp_sign: "",
+                        exp_part: "",
                     });
                 } else {
                     return Result::Err(ParseDecimalError::Invalid);
@@ -83,8 +83,8 @@ pub(crate) fn parse_decimal_literal(
                         num_sign: &lit[num_sign_range],
                         int_part: &lit[int_part_range],
                         frac_part: &lit[frac_part_range],
-                        exp_sign: &lit[exp_sign_range],
-                        exp_part: &lit[exp_part_range],
+                        exp_sign: "",
+                        exp_part: "",
                     });
                 }
                 Some((idx, ch)) => {
