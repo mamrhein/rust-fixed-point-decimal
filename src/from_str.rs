@@ -170,7 +170,12 @@ where
             return Result::Err(ParseDecimalError::PrecLimitExceeded);
         }
         let mut significant: i128 = if parts.int_part.len() > 0 {
-            parts.int_part.parse().unwrap()
+            match parts.int_part.parse() {
+                Err(_) => {
+                    return Err(ParseDecimalError::MaxValueExceeded);
+                }
+                Ok(i) => i,
+            }
         } else {
             0
         };
@@ -290,7 +295,18 @@ mod tests {
     }
 
     #[test]
-    fn test_int_lit_max_val_exceeded() {
+    fn test_int_lit_max_val_dec0_exceeded() {
+        let i = i128::MIN;
+        let mut s = format!("{}", i);
+        s.remove(0);
+        let res = Decimal::<0>::from_str(&s);
+        assert!(res.is_err());
+        let err = res.unwrap_err();
+        assert_eq!(err, ParseDecimalError::MaxValueExceeded);
+    }
+
+    #[test]
+    fn test_int_lit_max_val_dec2_exceeded() {
         let i = i128::MAX / 100 + 1;
         let s = format!("{}", i);
         let res = Decimal::<2>::from_str(&s);
