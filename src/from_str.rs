@@ -7,14 +7,14 @@
 // $Source$
 // $Revision$
 
-use std::str::FromStr;
+use std::{cmp::Ordering, str::FromStr};
 
 use crate::{
     errors::ParseDecimalError, powers_of_ten::checked_mul_pow_ten, Decimal,
     PrecLimitCheck, True,
 };
 
-pub(crate) struct DecLitParts<'a> {
+struct DecLitParts<'a> {
     num_sign: &'a str,
     int_part: &'a str,
     frac_part: &'a str,
@@ -25,9 +25,7 @@ pub(crate) struct DecLitParts<'a> {
 /// Parse a Decimal literal in the form
 /// \[+|-]<int>\[.<frac>]\[<e|E>\[+|-]<exp>] or
 /// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
-pub(crate) fn parse_decimal_literal(
-    lit: &str,
-) -> Result<DecLitParts, ParseDecimalError> {
+fn parse_decimal_literal(lit: &str) -> Result<DecLitParts, ParseDecimalError> {
     let mut num_sign_range = 0usize..0usize;
     let mut int_part_range = 0usize..0usize;
     let mut frac_part_range = 0usize..0usize;
@@ -142,6 +140,54 @@ pub(crate) fn parse_decimal_literal(
     })
 }
 
+/// Convert a decimal number literal into a representation in the form
+/// (significant, exponent), so that number == significant * 10 ^ exponent.
+///
+/// The literal must be in the form
+/// \[+|-]<int>\[.<frac>]\[<e|E>\[+|-]<exp>] or
+/// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
+pub(crate) fn dec_repr_from_str(
+    lit: &str,
+) -> Result<(i128, isize), ParseDecimalError> {
+    let max_prec = crate::MAX_PREC as isize;
+    let parts = parse_decimal_literal(lit)?;
+    let exp: isize = if parts.exp_part.len() > 0 {
+        if parts.exp_sign == "-" {
+            -parts.exp_part.parse::<isize>().unwrap()
+        } else {
+            parts.exp_part.parse().unwrap()
+        }
+    } else {
+        0
+    };
+    let n_frac_digits = parts.frac_part.len() as isize;
+    if n_frac_digits - exp > max_prec {
+        return Result::Err(ParseDecimalError::PrecLimitExceeded);
+    }
+    let mut significant: i128 = if parts.int_part.len() > 0 {
+        match parts.int_part.parse() {
+            Err(_) => {
+                return Err(ParseDecimalError::MaxValueExceeded);
+            }
+            Ok(i) => i,
+        }
+    } else {
+        0
+    };
+    if n_frac_digits > 0 {
+        match checked_mul_pow_ten(significant, n_frac_digits as u8) {
+            None => return Result::Err(ParseDecimalError::MaxValueExceeded),
+            Some(val) => significant = val,
+        }
+        significant += parts.frac_part.parse::<i128>().unwrap();
+    }
+    if parts.num_sign == "-" {
+        Ok((-significant, exp - n_frac_digits))
+    } else {
+        Ok((significant, exp - n_frac_digits))
+    }
+}
+
 impl<const P: u8> FromStr for Decimal<P>
 where
     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
@@ -155,52 +201,34 @@ where
     /// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
     fn from_str(lit: &str) -> Result<Self, Self::Err> {
         let prec = P as isize;
-        let parts = parse_decimal_literal(lit)?;
-        let exp: isize = if parts.exp_part.len() > 0 {
-            if parts.exp_sign == "-" {
-                parts.exp_part.parse::<isize>().unwrap() * -1
-            } else {
-                parts.exp_part.parse().unwrap()
+        let (significant, exponent) = dec_repr_from_str(lit)?;
+        if exponent > 0 {
+            let shift = prec + exponent;
+            if shift > 38 {
+                // 10 ^ 39 > int128::MAX
+                return Result::Err(ParseDecimalError::MaxValueExceeded);
             }
-        } else {
-            0
-        };
-        let n_frac_digits = parts.frac_part.len() as isize;
-        if n_frac_digits - exp > prec {
-            return Result::Err(ParseDecimalError::PrecLimitExceeded);
-        }
-        let mut significant: i128 = if parts.int_part.len() > 0 {
-            match parts.int_part.parse() {
-                Err(_) => {
-                    return Err(ParseDecimalError::MaxValueExceeded);
-                }
-                Ok(i) => i,
-            }
-        } else {
-            0
-        };
-        if n_frac_digits > 0 {
-            match checked_mul_pow_ten(significant, n_frac_digits as u8) {
-                None => {
-                    return Result::Err(ParseDecimalError::MaxValueExceeded)
-                }
-                Some(val) => significant = val,
-            }
-            significant += parts.frac_part.parse::<i128>().unwrap();
-        }
-        let shift = prec - n_frac_digits + exp;
-        if shift > 0 {
             match checked_mul_pow_ten(significant, shift as u8) {
-                None => {
-                    return Result::Err(ParseDecimalError::MaxValueExceeded)
-                }
-                Some(val) => significant = val,
+                None => Result::Err(ParseDecimalError::MaxValueExceeded),
+                Some(significant) => Ok(Self::new_raw(significant)),
             }
-        }
-        if parts.num_sign == "-" {
-            Ok(Self::new_raw(-significant))
         } else {
-            Ok(Self::new_raw(significant))
+            let n_frac_digits = -exponent;
+            match n_frac_digits.cmp(&prec) {
+                Ordering::Equal => Ok(Self::new_raw(significant)),
+                Ordering::Less => {
+                    let shift = prec - n_frac_digits;
+                    match checked_mul_pow_ten(significant, shift as u8) {
+                        None => {
+                            Result::Err(ParseDecimalError::MaxValueExceeded)
+                        }
+                        Some(significant) => Ok(Self::new_raw(significant)),
+                    }
+                }
+                Ordering::Greater => {
+                    Result::Err(ParseDecimalError::PrecLimitExceeded)
+                }
+            }
         }
     }
 }
@@ -288,7 +316,7 @@ mod tests {
 
     #[test]
     fn test_prec_limit_exceeded_with_exp() {
-        let res = Decimal::<3>::from_str("17e-5");
+        let res = Decimal::<3>::from_str("17.4e-3");
         assert!(res.is_err());
         let err = res.unwrap_err();
         assert_eq!(err, ParseDecimalError::PrecLimitExceeded);
