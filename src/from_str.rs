@@ -140,13 +140,14 @@ fn parse_decimal_literal(lit: &str) -> Result<DecLitParts, ParseDecimalError> {
     })
 }
 
+// Needs to be public for use in macro Dec!
 /// Convert a decimal number literal into a representation in the form
 /// (significant, exponent), so that number == significant * 10 ^ exponent.
 ///
 /// The literal must be in the form
 /// \[+|-]<int>\[.<frac>]\[<e|E>\[+|-]<exp>] or
 /// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
-pub(crate) fn dec_repr_from_str(
+pub fn dec_repr_from_str(
     lit: &str,
 ) -> Result<(i128, isize), ParseDecimalError> {
     let max_prec = crate::MAX_PREC as isize;

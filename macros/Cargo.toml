@@ -1,12 +1,12 @@
 cargo-features = ["edition2021"]
 
 [package]
-name = "rust-fixed-point-decimal"
+name = "rust-fixed-point-decimal-macros"
 version = "0.1.0"
 authors = ["Michael Amrhein <michael@adrhinum.de>"]
 edition = "2021"
-description = "Decimal fixed-point arithmetic."
-readme = "README.md"
+description = "Macros used to ease instantiation of Decimal numbers."
+readme = "../README.md"
 homepage = "https://github.com/mamrhein/rust-fixed-point-decimal"
 repository = "https://github.com/mamrhein/rust-fixed-point-decimal"
 license-file = "LICENSE.TXT"
@@ -14,7 +14,8 @@ keywords = ["number", "decimal", "fixed-point", "arithmetics"]
 categories = ["data-structures", "mathematics"]
 
 [dependencies]
-num = "0.4"
+rust-fixed-point-decimal = { path = "..", version = "0.1.0" }
+quote = "1.0"
 
-[workspace]
-members = [".", "./macros"]
+[lib]
+proc-macro = true

@@ -18,9 +18,11 @@ use std::ops::Neg;
 use crate::prec_constraints::{PrecLimitCheck, True};
 
 mod errors;
+pub use errors::*;
 mod from_float;
 mod from_int;
 mod from_str;
+pub use from_str::dec_repr_from_str;
 mod powers_of_ten;
 mod rounding;
 
@@ -47,13 +49,20 @@ impl<const P: u8> Decimal<P>
 where
     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
 {
-    fn new_raw(val: i128) -> Self {
+    // needs to be public because of macro Dec!
+    pub fn new_raw(val: i128) -> Self {
         Decimal { coeff: val }
+    }
+
+    /// Internal representation. For debugging only!
+    #[inline]
+    pub fn coefficient(self) -> i128 {
+        self.coeff
     }
 
     /// Number of fractional decimal digits
     #[inline]
-    const fn precision(self) -> u8 {
+    pub const fn precision(self) -> u8 {
         P
     }
 
