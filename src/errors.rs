@@ -54,6 +54,7 @@ pub enum DecimalError {
     PrecLimitExceeded,
     MaxValueExceeded,
     InfiniteValue,
+    NotANumber,
 }
 
 impl DecimalError {
@@ -68,6 +69,7 @@ impl DecimalError {
             DecimalError::InfiniteValue => {
                 "Can't convert infinite value to Decimal."
             }
+            DecimalError::NotANumber => "Given value is not a number.",
         }
     }
 }

@@ -35,6 +35,9 @@ macro_rules! impl_from_float {
                 if f.is_infinite() {
                     return Err(DecimalError::InfiniteValue);
                 }
+                if f.is_nan() {
+                    return Err(DecimalError::NotANumber);
+                }
                 let (mantissa, exponent, sign) = f.integer_decode();
                 if exponent < -126 {
                     Ok(Decimal::ZERO)
@@ -154,5 +157,23 @@ mod tests {
             let err = res.unwrap_err();
             assert_eq!(err, DecimalError::InfiniteValue);
         }
+    }
+
+    #[test]
+    fn test_fail_on_f32_nan() {
+        let f = f32::nan();
+        let res = Decimal::<2>::try_from(f);
+        assert!(res.is_err());
+        let err = res.unwrap_err();
+        assert_eq!(err, DecimalError::NotANumber);
+    }
+
+    #[test]
+    fn test_fail_on_f64_nan() {
+        let f = f64::nan();
+        let res = Decimal::<7>::try_from(f);
+        assert!(res.is_err());
+        let err = res.unwrap_err();
+        assert_eq!(err, DecimalError::NotANumber);
     }
 }
