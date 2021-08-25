@@ -7,7 +7,7 @@
 // $Source$
 // $Revision$
 
-use std::{cmp::Ordering, str::FromStr};
+use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
 
 use crate::{
     errors::ParseDecimalError, powers_of_ten::checked_mul_pow_ten, Decimal,
@@ -234,9 +234,21 @@ where
     }
 }
 
+impl<const P: u8> TryFrom<&str> for Decimal<P>
+where
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+{
+    type Error = ParseDecimalError;
+
+    #[inline]
+    fn try_from(lit: &str) -> Result<Self, Self::Error> {
+        Self::from_str(lit)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
+    use std::{convert::TryFrom, str::FromStr};
 
     use crate::{errors::ParseDecimalError, Decimal};
 
@@ -351,5 +363,41 @@ mod tests {
         assert!(res.is_err());
         let err = res.unwrap_err();
         assert_eq!(err, ParseDecimalError::MaxValueExceeded);
+    }
+
+    #[test]
+    fn test_parse() {
+        let s = "+28.700";
+        let res = s.parse::<Decimal<3>>();
+        assert!(!res.is_err());
+        let dec = res.unwrap();
+        assert_eq!(dec.coeff, 28700);
+    }
+
+    #[test]
+    fn test_parse_prec_limit_exceeded() {
+        let s = "+28.7005";
+        let res = s.parse::<Decimal<3>>();
+        assert!(res.is_err());
+        let err = res.unwrap_err();
+        assert_eq!(err, ParseDecimalError::PrecLimitExceeded);
+    }
+
+    #[test]
+    fn test_try_from() {
+        let s = "-534000.708";
+        let res = Decimal::<4>::try_from(s);
+        assert!(!res.is_err());
+        let dec = res.unwrap();
+        assert_eq!(dec.coeff, -5340007080);
+    }
+
+    #[test]
+    fn test_try_from_prec_limit_exceeded() {
+        let s = "+28.700500";
+        let res = Decimal::<5>::try_from(s);
+        assert!(res.is_err());
+        let err = res.unwrap_err();
+        assert_eq!(err, ParseDecimalError::PrecLimitExceeded);
     }
 }
