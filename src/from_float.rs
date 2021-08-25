@@ -135,4 +135,24 @@ mod tests {
         ];
         check_from_float::<9, f64>(&test_data)
     }
+
+    #[test]
+    fn test_fail_on_f32_infinite_value() {
+        for f in [f32::infinity(), f32::neg_infinity()] {
+            let res = Decimal::<2>::try_from(f);
+            assert!(res.is_err());
+            let err = res.unwrap_err();
+            assert_eq!(err, DecimalError::InfiniteValue);
+        }
+    }
+
+    #[test]
+    fn test_fail_on_f64_infinite_value() {
+        for f in [f64::infinity(), f64::neg_infinity()] {
+            let res = Decimal::<2>::try_from(f);
+            assert!(res.is_err());
+            let err = res.unwrap_err();
+            assert_eq!(err, DecimalError::InfiniteValue);
+        }
+    }
 }
