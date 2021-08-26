@@ -23,6 +23,7 @@ mod from_float;
 mod from_int;
 mod from_str;
 pub use from_str::dec_repr_from_str;
+mod from_decimal;
 mod powers_of_ten;
 mod rounding;
 
