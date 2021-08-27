@@ -9,7 +9,13 @@
 
 use std::ops::Shl;
 
-use num::{FromPrimitive, Integer, Num};
+use num::{FromPrimitive, Integer};
+
+use crate::{
+    powers_of_ten::ten_pow,
+    prec_constraints::{PrecLimitCheck, True},
+    Decimal,
+};
 
 #[derive(Clone, Copy, Debug)]
 pub enum RoundingMode {
@@ -39,11 +45,25 @@ impl Default for RoundingMode {
 }
 
 pub trait Round {
-    fn round<T: Num>(
-        num: T,
-        n_frac_digits: i8,
-        mode: Option<RoundingMode>,
-    ) -> T;
+    fn round(self: Self, n_frac_digits: i8) -> Self;
+}
+
+impl<const P: u8> Round for Decimal<P>
+where
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+{
+    fn round(self, n_frac_digits: i8) -> Self {
+        if n_frac_digits >= P as i8 {
+            self.clone()
+        } else if n_frac_digits < P as i8 - 38 {
+            Self::ZERO
+        } else {
+            // n_frac_digits < P
+            let shift: u8 = (P as i8 - n_frac_digits) as u8;
+            let divisor = ten_pow(shift);
+            Self::new_raw(div_rounded(self.coeff, divisor, None) * divisor)
+        }
+    }
 }
 
 // rounding helper
@@ -149,12 +169,12 @@ where
 }
 
 #[cfg(test)]
-mod tests {
+mod helper_tests {
     use std::convert::TryInto;
 
     use super::*;
 
-    const TESTDATA: [(i32, i32, RoundingMode, i32); 32] = [
+    const TESTDATA: [(i32, i32, RoundingMode, i32); 33] = [
         (17, 5, RoundingMode::Round05Up, 3),
         (27, 5, RoundingMode::Round05Up, 6),
         (-17, 5, RoundingMode::Round05Up, -3),
@@ -187,6 +207,7 @@ mod tests {
         (10802, 4321, RoundingMode::RoundUp, 3),
         (-19, 2, RoundingMode::RoundUp, -10),
         (-10802, 4321, RoundingMode::RoundUp, -3),
+        (i32::MAX, 1, RoundingMode::RoundUp, i32::MAX),
     ];
 
     macro_rules! test_div_rounded_uint {
@@ -243,4 +264,84 @@ mod tests {
         (test_div_rounded_i64, i64),
         (test_div_rounded_i128, i128)
     );
+}
+
+#[cfg(test)]
+mod round_decimal_tests {
+
+    use super::*;
+
+    macro_rules! test_decimal_round_no_op {
+         ($(($p:expr, $func:ident)),*) => {
+            $(
+            #[test]
+            fn $func() {
+                let x = Decimal::<$p>::MIN;
+                let y = x.round($p);
+                assert_eq!(x.coeff, y.coeff);
+                let y = x.round($p + 2);
+                assert_eq!(x.coeff, y.coeff);
+            }
+            )*
+        }
+    }
+
+    test_decimal_round_no_op!(
+        (0, test_decimal0_round_no_op),
+        (1, test_decimal1_round_no_op),
+        (2, test_decimal2_round_no_op),
+        (3, test_decimal3_round_no_op),
+        (4, test_decimal4_round_no_op),
+        (5, test_decimal5_round_no_op),
+        (6, test_decimal6_round_no_op),
+        (7, test_decimal7_round_no_op),
+        (8, test_decimal8_round_no_op),
+        (9, test_decimal9_round_no_op)
+    );
+
+    macro_rules! test_decimal_round_result_zero {
+         ($(($p:expr, $func:ident)),*) => {
+            $(
+            #[test]
+            fn $func() {
+                let x = Decimal::<$p>::MIN;
+                let y = x.round($p - 39);
+                assert_eq!(y.coeff, 0);
+                let y = x.round($p - 42);
+                assert_eq!(y.coeff, 0);
+            }
+            )*
+        }
+    }
+
+    test_decimal_round_result_zero!(
+        (0, test_decimal0_round_result_zero),
+        (1, test_decimal1_round_result_zero),
+        (2, test_decimal2_round_result_zero),
+        (3, test_decimal3_round_result_zero),
+        (4, test_decimal4_round_result_zero),
+        (5, test_decimal5_round_result_zero),
+        (6, test_decimal6_round_result_zero),
+        (7, test_decimal7_round_result_zero),
+        (8, test_decimal8_round_result_zero),
+        (9, test_decimal9_round_result_zero)
+    );
+
+    #[test]
+    fn test_decimal_round() {
+        let d = Decimal::<0>::new_raw(12345);
+        assert_eq!(d.round(-1).coeff, 12340);
+        let d = Decimal::<0>::new_raw(1285);
+        assert_eq!(d.round(-2).coeff, 1300);
+        let d = Decimal::<1>::new_raw(12345);
+        assert_eq!(d.round(0).coeff, 12340);
+        let d = Decimal::<2>::new_raw(1285);
+        assert_eq!(d.round(0).coeff, 1300);
+        let d = Decimal::<7>::new_raw(12345678909876543);
+        assert_eq!(d.round(0).coeff, 12345678910000000);
+        let d = Decimal::<9>::new_raw(123455);
+        assert_eq!(d.round(8).coeff, 123460);
+    }
+
+    // TODO: test failure cases
 }
