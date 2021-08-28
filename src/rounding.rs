@@ -44,8 +44,12 @@ impl Default for RoundingMode {
     }
 }
 
-pub trait Round {
+pub trait Round
+where
+    Self: Sized,
+{
     fn round(self: Self, n_frac_digits: i8) -> Self;
+    fn checked_round(self: Self, n_frac_digits: i8) -> Option<Self>;
 }
 
 impl<const P: u8> Round for Decimal<P>
@@ -62,6 +66,22 @@ where
             let shift: u8 = (P as i8 - n_frac_digits) as u8;
             let divisor = ten_pow(shift);
             Self::new_raw(div_rounded(self.coeff, divisor, None) * divisor)
+        }
+    }
+
+    fn checked_round(self, n_frac_digits: i8) -> Option<Self> {
+        if n_frac_digits >= P as i8 {
+            Some(self.clone())
+        } else if n_frac_digits < P as i8 - 38 {
+            Some(Self::ZERO)
+        } else {
+            // n_frac_digits < P
+            let shift: u8 = (P as i8 - n_frac_digits) as u8;
+            let divisor = ten_pow(shift);
+            match div_rounded(self.coeff, divisor, None).checked_mul(divisor) {
+                None => None,
+                Some(coeff) => Some(Self::new_raw(coeff)),
+            }
         }
     }
 }
@@ -281,6 +301,10 @@ mod round_decimal_tests {
                 assert_eq!(x.coeff, y.coeff);
                 let y = x.round($p + 2);
                 assert_eq!(x.coeff, y.coeff);
+                let y = x.checked_round($p).unwrap();
+                assert_eq!(x.coeff, y.coeff);
+                let y = x.checked_round($p + 2).unwrap();
+                assert_eq!(x.coeff, y.coeff);
             }
             )*
         }
@@ -308,6 +332,10 @@ mod round_decimal_tests {
                 let y = x.round($p - 39);
                 assert_eq!(y.coeff, 0);
                 let y = x.round($p - 42);
+                assert_eq!(y.coeff, 0);
+                let y = x.checked_round($p - 39).unwrap();
+                assert_eq!(y.coeff, 0);
+                let y = x.checked_round($p - 42).unwrap();
                 assert_eq!(y.coeff, 0);
             }
             )*
@@ -344,4 +372,26 @@ mod round_decimal_tests {
     }
 
     // TODO: test failure cases
+
+    #[test]
+    fn test_decimal_checked_round() {
+        let d = Decimal::<0>::new_raw(12345);
+        assert_eq!(d.checked_round(-1).unwrap().coeff, 12340);
+        let d = Decimal::<0>::new_raw(1285);
+        assert_eq!(d.checked_round(-2).unwrap().coeff, 1300);
+        let d = Decimal::<1>::new_raw(12345);
+        assert_eq!(d.checked_round(0).unwrap().coeff, 12340);
+        let d = Decimal::<2>::new_raw(1285);
+        assert_eq!(d.checked_round(0).unwrap().coeff, 1300);
+        let d = Decimal::<7>::new_raw(12345678909876543);
+        assert_eq!(d.checked_round(0).unwrap().coeff, 12345678910000000);
+        let d = Decimal::<9>::new_raw(123455);
+        assert_eq!(d.checked_round(8).unwrap().coeff, 123460);
+        let d = Decimal::<0>::MAX;
+        let res = d.checked_round(-1);
+        assert!(res.is_none());
+        let d = Decimal::<7>::MAX;
+        let res = d.checked_round(4);
+        assert!(res.is_none());
+    }
 }
