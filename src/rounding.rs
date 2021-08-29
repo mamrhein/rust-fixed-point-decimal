@@ -86,6 +86,36 @@ where
     }
 }
 
+pub trait RoundInto<T>
+where
+    Self: Sized,
+    T: Sized,
+{
+    fn round_into(self: Self) -> T;
+}
+
+impl<const P: u8> RoundInto<i128> for Decimal<P>
+where
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+{
+    fn round_into(self: Self) -> i128 {
+        div_rounded(self.coeff, ten_pow(P), None)
+    }
+}
+
+impl<const P: u8, const Q: u8> RoundInto<Decimal<Q>> for Decimal<P>
+where
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ Q < P }>: True,
+{
+    fn round_into(self: Self) -> Decimal<Q> {
+        let divisor = ten_pow(P - Q);
+        let coeff = div_rounded(self.coeff, divisor, None);
+        Decimal::<Q>::new_raw(coeff)
+    }
+}
+
 // rounding helper
 
 /// Divide 'divident' by 'divisor' and round result according to 'mode'.
@@ -398,5 +428,34 @@ mod round_decimal_tests {
         let d = Decimal::<7>::MAX;
         let res = d.checked_round(4);
         assert!(res.is_none());
+    }
+
+    #[test]
+    fn test_round_into_i128() {
+        let d = Decimal::<4>::new_raw(12345000);
+        let i: i128 = d.round_into();
+        assert_eq!(i, 1234);
+        let d = Decimal::<4>::new_raw(12345678);
+        let i: i128 = d.round_into();
+        assert_eq!(i, 1235);
+        let d = Decimal::<2>::new_raw(12345678);
+        let i: i128 = d.round_into();
+        assert_eq!(i, 123457);
+    }
+
+    #[test]
+    fn test_round_into_decimal() {
+        let d = Decimal::<4>::new_raw(12345000);
+        let r: Decimal<0> = d.round_into();
+        assert_eq!(r.coeff, 1234);
+        let d = Decimal::<4>::new_raw(12345678);
+        let r: Decimal<0> = d.round_into();
+        assert_eq!(r.coeff, 1235);
+        let d = Decimal::<4>::new_raw(12345678);
+        let r: Decimal<2> = d.round_into();
+        assert_eq!(r.coeff, 123457);
+        let d = Decimal::<7>::MAX; // 17014118346046923173168730371588.4105727
+        let r: Decimal<2> = d.round_into();
+        assert_eq!(r.coeff, 1701411834604692317316873037158841_i128);
     }
 }
