@@ -371,7 +371,12 @@ mod round_decimal_tests {
         assert_eq!(d.round(8).coeff, 123460);
     }
 
-    // TODO: test failure cases
+    #[test]
+    #[should_panic]
+    fn test_decimal_round_overflow() {
+        let d = Decimal::<8>::MAX;
+        let _ = d.round(0);
+    }
 
     #[test]
     fn test_decimal_checked_round() {
