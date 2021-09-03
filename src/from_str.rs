@@ -150,7 +150,7 @@ fn parse_decimal_literal(lit: &str) -> Result<DecLitParts, ParseDecimalError> {
 pub fn dec_repr_from_str(
     lit: &str,
 ) -> Result<(i128, isize), ParseDecimalError> {
-    let max_prec = crate::MAX_PREC as isize;
+    let max_prec = rust_fixed_point_decimal_core::MAX_PREC as isize;
     let parts = parse_decimal_literal(lit)?;
     let exp: isize = if parts.exp_part.len() > 0 {
         if parts.exp_sign == "-" {
@@ -191,7 +191,7 @@ pub fn dec_repr_from_str(
 
 impl<const P: u8> FromStr for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     type Err = ParseDecimalError;
 
@@ -236,7 +236,7 @@ where
 
 impl<const P: u8> TryFrom<&str> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     type Error = ParseDecimalError;
 

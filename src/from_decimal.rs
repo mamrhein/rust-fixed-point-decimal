@@ -17,12 +17,12 @@ use crate::{
 
 impl<const P: u8> Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     #[inline]
     fn try_from<const Q: u8>(dec: Decimal<Q>) -> Result<Self, DecimalError>
     where
-        PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
+        PrecLimitCheck<{ Q <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
     {
         if Q == P {
             Ok(Self::new_raw(dec.coeff))

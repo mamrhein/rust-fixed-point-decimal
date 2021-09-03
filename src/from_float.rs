@@ -74,7 +74,7 @@ mod tests {
 
     fn check_from_float<const P: u8, T>(test_data: &[(T, i128)])
     where
-        PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+        PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
         T: FloatCore,
         Decimal<P>: TryFrom<T>,
     {

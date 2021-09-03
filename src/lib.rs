@@ -15,15 +15,16 @@
 
 use std::ops::Neg;
 
+pub use errors::*;
+pub use from_str::dec_repr_from_str;
+
 use crate::prec_constraints::{PrecLimitCheck, True};
 
 mod errors;
-pub use errors::*;
+mod from_decimal;
 mod from_float;
 mod from_int;
 mod from_str;
-pub use from_str::dec_repr_from_str;
-mod from_decimal;
 mod powers_of_ten;
 mod rounding;
 
@@ -35,20 +36,20 @@ mod prec_constraints {
     impl True for PrecLimitCheck<true> {}
 }
 
-pub const MAX_PREC: u8 = 9;
+pub use rust_fixed_point_decimal_core::MAX_PREC;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Decimal<const P: u8>
 where
     Decimal<P>: Sized,
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     coeff: i128,
 }
 
 impl<const P: u8> Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     // needs to be public because of macro Dec!
     pub fn new_raw(val: i128) -> Self {
@@ -95,7 +96,7 @@ where
 
 impl<const P: u8> Default for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     /// Default value: Decimal::<P>::ZERO
     fn default() -> Self {
@@ -105,7 +106,7 @@ where
 
 impl<const P: u8> Neg for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     type Output = Self;
 

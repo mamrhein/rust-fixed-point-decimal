@@ -54,7 +54,7 @@ where
 
 impl<const P: u8> Round for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     fn round(self, n_frac_digits: i8) -> Self {
         if n_frac_digits >= P as i8 {
@@ -96,7 +96,7 @@ where
 
 impl<const P: u8> RoundInto<i128> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
 {
     fn round_into(self: Self) -> i128 {
         div_rounded(self.coeff, ten_pow(P), None)
@@ -105,8 +105,8 @@ where
 
 impl<const P: u8, const Q: u8> RoundInto<Decimal<Q>> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
     PrecLimitCheck<{ Q < P }>: True,
 {
     fn round_into(self: Self) -> Decimal<Q> {

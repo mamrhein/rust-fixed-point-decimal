@@ -9,9 +9,8 @@
 
 use ::proc_macro::TokenStream;
 use ::quote::quote;
-use ::rust_fixed_point_decimal::{
-    dec_repr_from_str, ParseDecimalError, MAX_PREC,
-};
+use ::rust_fixed_point_decimal::{dec_repr_from_str, ParseDecimalError};
+use rust_fixed_point_decimal_core::MAX_PREC;
 
 /// Macro used to convert a number literal into a Decimal<P>.
 ///
