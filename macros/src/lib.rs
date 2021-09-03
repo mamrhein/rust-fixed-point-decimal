@@ -19,12 +19,18 @@ use ::rust_fixed_point_decimal::{
 /// \[+|-]<int>\[.<frac>]\[<e|E>\[+|-]<exp>] or
 /// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
 ///
-/// Panics if this condition is not met!
+/// P is determined by the he number of fractional digits minus the value of the
+/// signed exponent. It must not exceed the constant MAX_PREC.
+///
+/// The resulting value must not exceed the limits given by Decimal::<P>::MIN
+/// and Decimal::<P>::MAX.
+///
+/// The macro panics if these conditions are not met!
 #[allow(non_snake_case)]
 #[proc_macro]
 pub fn Dec(input: TokenStream) -> TokenStream {
     let mut src = input.to_string();
-    // "-" get's separated by a blank => remove it
+    // "-" and "+" get separated by a blank => remove it
     if src.starts_with("- ") || src.starts_with("+ ") {
         src.remove(1);
     }
