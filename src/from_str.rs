@@ -9,10 +9,9 @@
 
 use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
 
-use crate::{
-    errors::ParseDecimalError, powers_of_ten::checked_mul_pow_ten, Decimal,
-    PrecLimitCheck, True,
-};
+use rust_fixed_point_decimal_core::powers_of_ten::checked_mul_pow_ten;
+
+use crate::{errors::ParseDecimalError, Decimal, PrecLimitCheck, True};
 
 struct DecLitParts<'a> {
     num_sign: &'a str,

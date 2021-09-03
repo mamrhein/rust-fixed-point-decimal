@@ -10,9 +10,9 @@
 use std::ops::Shl;
 
 use num::{FromPrimitive, Integer};
+use rust_fixed_point_decimal_core::powers_of_ten::ten_pow;
 
 use crate::{
-    powers_of_ten::ten_pow,
     prec_constraints::{PrecLimitCheck, True},
     Decimal,
 };
@@ -318,7 +318,6 @@ mod helper_tests {
 
 #[cfg(test)]
 mod round_decimal_tests {
-
     use super::*;
 
     macro_rules! test_decimal_round_no_op {

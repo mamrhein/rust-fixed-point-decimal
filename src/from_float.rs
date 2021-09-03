@@ -10,10 +10,10 @@
 use std::convert::TryFrom;
 
 use num::{traits::float::FloatCore, BigInt, One};
+use rust_fixed_point_decimal_core::powers_of_ten::ten_pow;
 
 use crate::{
     errors::DecimalError,
-    powers_of_ten::ten_pow,
     prec_constraints::{PrecLimitCheck, True},
     rounding::div_rounded,
     Decimal,

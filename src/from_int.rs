@@ -9,11 +9,11 @@
 
 use std::convert::TryFrom;
 
-use crate::{
-    errors::DecimalError,
-    powers_of_ten::{checked_mul_pow_ten, ten_pow},
-    Decimal, PrecLimitCheck, True,
+use rust_fixed_point_decimal_core::powers_of_ten::{
+    checked_mul_pow_ten, ten_pow,
 };
+
+use crate::{errors::DecimalError, Decimal, PrecLimitCheck, True};
 
 macro_rules! impl_from_int {
     () => {

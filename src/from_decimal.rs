@@ -8,12 +8,11 @@
 // $Revision$
 
 use num::integer::div_mod_floor;
-
-use crate::{
-    errors::DecimalError,
-    powers_of_ten::{checked_mul_pow_ten, ten_pow},
-    Decimal, PrecLimitCheck, True,
+use rust_fixed_point_decimal_core::powers_of_ten::{
+    checked_mul_pow_ten, ten_pow,
 };
+
+use crate::{errors::DecimalError, Decimal, PrecLimitCheck, True};
 
 impl<const P: u8> Decimal<P>
 where

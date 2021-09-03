@@ -17,6 +17,7 @@ use std::ops::Neg;
 
 pub use errors::*;
 pub use from_str::dec_repr_from_str;
+pub use rust_fixed_point_decimal_core::MAX_PREC;
 
 use crate::prec_constraints::{PrecLimitCheck, True};
 
@@ -25,7 +26,6 @@ mod from_decimal;
 mod from_float;
 mod from_int;
 mod from_str;
-mod powers_of_ten;
 mod rounding;
 
 mod prec_constraints {
@@ -35,8 +35,6 @@ mod prec_constraints {
 
     impl True for PrecLimitCheck<true> {}
 }
-
-pub use rust_fixed_point_decimal_core::MAX_PREC;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Decimal<const P: u8>

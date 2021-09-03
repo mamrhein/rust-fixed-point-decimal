@@ -50,11 +50,11 @@ const POWERS_OF_10: [i128; 39] = [
 ];
 
 #[inline]
-pub(crate) fn ten_pow(n: u8) -> i128 {
+pub fn ten_pow(n: u8) -> i128 {
     POWERS_OF_10[n as usize]
 }
 
 #[inline]
-pub(crate) fn checked_mul_pow_ten(val: i128, n: u8) -> Option<i128> {
+pub fn checked_mul_pow_ten(val: i128, n: u8) -> Option<i128> {
     val.checked_mul(ten_pow(n))
 }
