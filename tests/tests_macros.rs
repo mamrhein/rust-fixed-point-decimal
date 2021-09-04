@@ -4,10 +4,10 @@
 //              details please read the file LICENSE.TXT provided together
 //              with the application.
 // ---------------------------------------------------------------------------
-// $Source: macros/tests/tests_macros.rs $
-// $Revision: 2021-08-24T08:30:57+02:00 $
+// $Source$
+// $Revision$
 
-use rust_fixed_point_decimal_macros::Dec;
+use rust_fixed_point_decimal::Dec;
 
 #[cfg(test)]
 mod tests {
