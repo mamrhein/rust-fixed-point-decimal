@@ -7,6 +7,7 @@
 // $Source$
 // $Revision$
 
+pub mod parser;
 pub mod powers_of_ten;
 
 pub const MAX_PREC: u8 = 9;

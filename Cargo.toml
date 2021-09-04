@@ -15,6 +15,7 @@ categories = ["data-structures", "mathematics"]
 
 [dependencies]
 rust-fixed-point-decimal-core = { path = "./core", version = "0.1.0" }
+rust-fixed-point-decimal-macros = { path = "./macros", version = "0.1.0" }
 num = "0.4"
 
 [workspace]
