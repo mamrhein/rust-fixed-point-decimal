@@ -7,7 +7,10 @@
 // $Source$
 // $Revision$
 
-pub mod parser;
-pub mod powers_of_ten;
+mod parser;
+mod powers_of_ten;
 
 pub const MAX_PREC: u8 = 9;
+
+pub use parser::{dec_repr_from_str, ParseDecimalError};
+pub use powers_of_ten::{checked_mul_pow_ten, ten_pow};

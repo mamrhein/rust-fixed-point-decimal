@@ -10,7 +10,7 @@
 use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
 
 use rust_fixed_point_decimal_core::{
-    parser, parser::ParseDecimalError, powers_of_ten::checked_mul_pow_ten,
+    checked_mul_pow_ten, dec_repr_from_str, ParseDecimalError,
 };
 
 use crate::{Decimal, PrecLimitCheck, True};
@@ -28,7 +28,7 @@ where
     /// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
     fn from_str(lit: &str) -> Result<Self, Self::Err> {
         let prec = P as isize;
-        let (significant, exponent) = parser::dec_repr_from_str(lit)?;
+        let (significant, exponent) = dec_repr_from_str(lit)?;
         if exponent > 0 {
             let shift = prec + exponent;
             if shift > 38 {
@@ -76,7 +76,7 @@ where
 mod tests {
     use std::{convert::TryFrom, str::FromStr};
 
-    use rust_fixed_point_decimal_core::parser::ParseDecimalError;
+    use rust_fixed_point_decimal_core::ParseDecimalError;
 
     use crate::Decimal;
 

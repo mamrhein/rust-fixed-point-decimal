@@ -10,7 +10,7 @@
 use std::ops::Shl;
 
 use num::{FromPrimitive, Integer};
-use rust_fixed_point_decimal_core::powers_of_ten::ten_pow;
+use rust_fixed_point_decimal_core::ten_pow;
 
 use crate::{
     prec_constraints::{PrecLimitCheck, True},

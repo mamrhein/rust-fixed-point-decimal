@@ -9,9 +9,7 @@
 
 use std::convert::TryFrom;
 
-use rust_fixed_point_decimal_core::powers_of_ten::{
-    checked_mul_pow_ten, ten_pow,
-};
+use rust_fixed_point_decimal_core::{checked_mul_pow_ten, ten_pow};
 
 use crate::{errors::DecimalError, Decimal, PrecLimitCheck, True};
 

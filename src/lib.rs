@@ -16,7 +16,7 @@
 use std::ops::Neg;
 
 pub use errors::*;
-pub use rust_fixed_point_decimal_core::{parser::ParseDecimalError, MAX_PREC};
+pub use rust_fixed_point_decimal_core::{ParseDecimalError, MAX_PREC};
 pub use rust_fixed_point_decimal_macros::Dec;
 
 use crate::prec_constraints::{PrecLimitCheck, True};
