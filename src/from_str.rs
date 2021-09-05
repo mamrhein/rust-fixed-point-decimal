@@ -28,28 +28,28 @@ where
     /// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
     fn from_str(lit: &str) -> Result<Self, Self::Err> {
         let prec = P as isize;
-        let (significant, exponent) = dec_repr_from_str(lit)?;
+        let (coeff, exponent) = dec_repr_from_str(lit)?;
         if exponent > 0 {
             let shift = prec + exponent;
             if shift > 38 {
                 // 10 ^ 39 > int128::MAX
                 return Result::Err(ParseDecimalError::MaxValueExceeded);
             }
-            match checked_mul_pow_ten(significant, shift as u8) {
+            match checked_mul_pow_ten(coeff, shift as u8) {
                 None => Result::Err(ParseDecimalError::MaxValueExceeded),
-                Some(significant) => Ok(Self::new_raw(significant)),
+                Some(coeff) => Ok(Self::new_raw(coeff)),
             }
         } else {
             let n_frac_digits = -exponent;
             match n_frac_digits.cmp(&prec) {
-                Ordering::Equal => Ok(Self::new_raw(significant)),
+                Ordering::Equal => Ok(Self::new_raw(coeff)),
                 Ordering::Less => {
                     let shift = prec - n_frac_digits;
-                    match checked_mul_pow_ten(significant, shift as u8) {
+                    match checked_mul_pow_ten(coeff, shift as u8) {
                         None => {
                             Result::Err(ParseDecimalError::MaxValueExceeded)
                         }
-                        Some(significant) => Ok(Self::new_raw(significant)),
+                        Some(coeff) => Ok(Self::new_raw(coeff)),
                     }
                 }
                 Ordering::Greater => {

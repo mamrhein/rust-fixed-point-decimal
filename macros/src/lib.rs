@@ -37,7 +37,7 @@ pub fn Dec(input: TokenStream) -> TokenStream {
 
     match dec_repr_from_str(&src) {
         Err(e) => panic!("{}", e),
-        Ok((mut significant, mut exponent)) => {
+        Ok((mut coeff, mut exponent)) => {
             if -exponent > (MAX_PREC as isize) {
                 panic!("{}", ParseDecimalError::PrecLimitExceeded)
             }
@@ -46,10 +46,10 @@ pub fn Dec(input: TokenStream) -> TokenStream {
                 panic!("{}", ParseDecimalError::MaxValueExceeded);
             }
             if exponent > 0 {
-                match significant.checked_mul(10i128.pow(exponent as u32)) {
+                match coeff.checked_mul(10i128.pow(exponent as u32)) {
                     None => panic!("{}", ParseDecimalError::MaxValueExceeded),
                     Some(val) => {
-                        significant = val;
+                        coeff = val;
                     }
                 }
                 exponent = 0;
@@ -57,7 +57,7 @@ pub fn Dec(input: TokenStream) -> TokenStream {
             let prec = -exponent as u8;
             quote!(
                 rust_fixed_point_decimal::Decimal::<#prec>
-                ::new_raw(#significant)
+                ::new_raw(#coeff)
             )
             .into()
         }

@@ -173,7 +173,7 @@ fn parse_decimal_literal(lit: &str) -> Result<DecLitParts, ParseDecimalError> {
 }
 
 /// Convert a decimal number literal into a representation in the form
-/// (significant, exponent), so that number == significant * 10 ^ exponent.
+/// (coefficient, exponent), so that number == coefficient * 10 ^ exponent.
 ///
 /// The literal must be in the form
 /// \[+|-]<int>\[.<frac>]\[<e|E>\[+|-]<exp>] or
@@ -196,7 +196,7 @@ pub fn dec_repr_from_str(
     if n_frac_digits - exp > max_prec {
         return Result::Err(ParseDecimalError::PrecLimitExceeded);
     }
-    let mut significant: i128 = if parts.int_part.len() > 0 {
+    let mut coeff: i128 = if parts.int_part.len() > 0 {
         match parts.int_part.parse() {
             Err(_) => {
                 return Err(ParseDecimalError::MaxValueExceeded);
@@ -207,15 +207,15 @@ pub fn dec_repr_from_str(
         0
     };
     if n_frac_digits > 0 {
-        match checked_mul_pow_ten(significant, n_frac_digits as u8) {
+        match checked_mul_pow_ten(coeff, n_frac_digits as u8) {
             None => return Result::Err(ParseDecimalError::MaxValueExceeded),
-            Some(val) => significant = val,
+            Some(val) => coeff = val,
         }
-        significant += parts.frac_part.parse::<i128>().unwrap();
+        coeff += parts.frac_part.parse::<i128>().unwrap();
     }
     if parts.num_sign == "-" {
-        Ok((-significant, exp - n_frac_digits))
+        Ok((-coeff, exp - n_frac_digits))
     } else {
-        Ok((significant, exp - n_frac_digits))
+        Ok((coeff, exp - n_frac_digits))
     }
 }
