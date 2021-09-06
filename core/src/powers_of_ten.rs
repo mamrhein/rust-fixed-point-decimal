@@ -55,6 +55,11 @@ pub fn ten_pow(n: u8) -> i128 {
 }
 
 #[inline]
+pub fn mul_pow_ten(val: i128, n: u8) -> i128 {
+    val * ten_pow(n)
+}
+
+#[inline]
 pub fn checked_mul_pow_ten(val: i128, n: u8) -> Option<i128> {
     val.checked_mul(ten_pow(n))
 }
