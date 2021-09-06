@@ -71,10 +71,11 @@ mod tests {
     use num::traits::float::FloatCore;
 
     use super::*;
+    use crate::MAX_PREC;
 
     fn check_from_float<const P: u8, T>(test_data: &[(T, i128)])
     where
-        PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+        PrecLimitCheck<{ P <= MAX_PREC }>: True,
         T: FloatCore,
         Decimal<P>: TryFrom<T>,
     {

@@ -11,7 +11,7 @@ use std::convert::TryFrom;
 
 use rust_fixed_point_decimal_core::{checked_mul_pow_ten, ten_pow};
 
-use crate::{errors::DecimalError, Decimal, PrecLimitCheck, True};
+use crate::{errors::DecimalError, Decimal, PrecLimitCheck, True, MAX_PREC};
 
 macro_rules! impl_from_int {
     () => {
@@ -37,7 +37,7 @@ impl_from_int!();
 
 impl<const P: u8> TryFrom<i128> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     type Error = DecimalError;
 
@@ -52,7 +52,7 @@ where
 
 impl<const P: u8> TryFrom<u128> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     type Error = DecimalError;
 
@@ -73,7 +73,7 @@ mod tests {
 
     fn check_from_int<const P: u8, T>(numbers: &[T])
     where
-        PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+        PrecLimitCheck<{ P <= MAX_PREC }>: True,
         T: Into<i128> + Copy,
         Decimal<P>: From<T>,
     {
@@ -110,7 +110,7 @@ mod tests {
 
     fn check_try_from_int_ok<const P: u8, T>(numbers: &[T])
     where
-        PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+        PrecLimitCheck<{ P <= MAX_PREC }>: True,
         T: TryInto<i128> + Copy,
         Decimal<P>: TryFrom<T>,
     {

@@ -10,16 +10,16 @@
 use num::integer::div_mod_floor;
 use rust_fixed_point_decimal_core::{checked_mul_pow_ten, ten_pow};
 
-use crate::{errors::DecimalError, Decimal, PrecLimitCheck, True};
+use crate::{errors::DecimalError, Decimal, PrecLimitCheck, True, MAX_PREC};
 
 impl<const P: u8> Decimal<P>
 where
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     #[inline]
     fn try_from<const Q: u8>(dec: Decimal<Q>) -> Result<Self, DecimalError>
     where
-        PrecLimitCheck<{ Q <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+        PrecLimitCheck<{ Q <= MAX_PREC }>: True,
     {
         if Q == P {
             Ok(Self::new_raw(dec.coeff))

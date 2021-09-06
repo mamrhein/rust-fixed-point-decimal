@@ -40,14 +40,14 @@ mod prec_constraints {
 pub struct Decimal<const P: u8>
 where
     Decimal<P>: Sized,
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     coeff: i128,
 }
 
 impl<const P: u8> Decimal<P>
 where
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     // needs to be public because of macro Dec!
     pub fn new_raw(val: i128) -> Self {
@@ -94,7 +94,7 @@ where
 
 impl<const P: u8> Default for Decimal<P>
 where
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     /// Default value: Decimal::<P>::ZERO
     fn default() -> Self {
@@ -104,7 +104,7 @@ where
 
 impl<const P: u8> Neg for Decimal<P>
 where
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     type Output = Self;
 

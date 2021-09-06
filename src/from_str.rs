@@ -9,15 +9,13 @@
 
 use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
 
-use rust_fixed_point_decimal_core::{
-    checked_mul_pow_ten, dec_repr_from_str, ParseDecimalError,
-};
+use rust_fixed_point_decimal_core::{checked_mul_pow_ten, dec_repr_from_str};
 
-use crate::{Decimal, PrecLimitCheck, True};
+use crate::{Decimal, ParseDecimalError, PrecLimitCheck, True, MAX_PREC};
 
 impl<const P: u8> FromStr for Decimal<P>
 where
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     type Err = ParseDecimalError;
 
@@ -62,7 +60,7 @@ where
 
 impl<const P: u8> TryFrom<&str> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= rust_fixed_point_decimal_core::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     type Error = ParseDecimalError;
 
