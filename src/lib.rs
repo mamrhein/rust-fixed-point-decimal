@@ -12,8 +12,6 @@
 #![feature(generic_const_exprs)]
 #![feature(associated_type_bounds)]
 
-use std::ops::Neg;
-
 pub use errors::*;
 pub use rust_fixed_point_decimal_core::{ParseDecimalError, MAX_PREC};
 pub use rust_fixed_point_decimal_macros::Dec;
@@ -27,6 +25,7 @@ mod from_float;
 mod from_int;
 mod from_str;
 mod rounding;
+mod unops;
 
 mod prec_constraints {
     pub trait True {}
@@ -102,18 +101,6 @@ where
     }
 }
 
-impl<const P: u8> Neg for Decimal<P>
-where
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-{
-    type Output = Self;
-
-    /// Return -self.
-    fn neg(self) -> Self::Output {
-        Self::Output { coeff: -self.coeff }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::Decimal;
@@ -152,14 +139,4 @@ mod tests {
     }
 
     test_constants_and_default!();
-
-    #[test]
-    fn test_neg() {
-        let val = 1234567890i128;
-        let x: Decimal<2> = Decimal::new_raw(val);
-        let y = -x;
-        assert_eq!(x.coeff, -y.coeff);
-        let z = -y;
-        assert_eq!(x.coeff, z.coeff);
-    }
 }
