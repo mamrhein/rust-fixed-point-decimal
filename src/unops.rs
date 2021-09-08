@@ -9,6 +9,8 @@
 
 use std::ops::Neg;
 
+use rust_fixed_point_decimal_core::ten_pow;
+
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
     Decimal, MAX_PREC,
@@ -37,6 +39,28 @@ where
             coeff: self.coeff.abs(),
         }
     }
+
+    /// Returns the largest integral value <= `self`.
+    #[inline]
+    pub fn floor(&self) -> Self {
+        match P {
+            0 => self.clone(),
+            _ => Self {
+                coeff: self.coeff.div_floor(ten_pow(P)) * ten_pow(P),
+            },
+        }
+    }
+
+    /// Returns the smallest integral value >= `self`.
+    #[inline]
+    pub fn ceil(&self) -> Self {
+        match P {
+            0 => self.clone(),
+            _ => Self {
+                coeff: self.coeff.div_ceil(ten_pow(P)) * ten_pow(P),
+            },
+        }
+    }
 }
 
 #[cfg(test)]
@@ -59,6 +83,40 @@ mod tests {
         let y = x.abs();
         assert_eq!(-x.coeff, y.coeff);
         let z = y.abs();
+        assert_eq!(y.coeff, z.coeff);
+    }
+
+    #[test]
+    fn test_floor() {
+        let x = Decimal::<0>::new_raw(123);
+        let y = x.floor();
+        assert_eq!(y.coeff, x.coeff);
+        let x = Decimal::<5>::new_raw(123456789);
+        let y = x.floor();
+        assert_eq!(y.coeff, 123400000);
+        let z = y.floor();
+        assert_eq!(y.coeff, z.coeff);
+        let x = Decimal::<9>::new_raw(-987);
+        let y = x.floor();
+        assert_eq!(y.coeff, -1000000000);
+        let z = y.floor();
+        assert_eq!(y.coeff, z.coeff);
+    }
+
+    #[test]
+    fn test_ceil() {
+        let x = Decimal::<0>::new_raw(123);
+        let y = x.ceil();
+        assert_eq!(y.coeff, x.coeff);
+        let x = Decimal::<5>::new_raw(123400001);
+        let y = x.ceil();
+        assert_eq!(y.coeff, 123500000);
+        let z = y.ceil();
+        assert_eq!(y.coeff, z.coeff);
+        let x = Decimal::<9>::new_raw(-987);
+        let y = x.ceil();
+        assert_eq!(y.coeff, 0);
+        let z = y.ceil();
         assert_eq!(y.coeff, z.coeff);
     }
 }

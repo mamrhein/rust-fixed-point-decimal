@@ -11,6 +11,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 #![feature(associated_type_bounds)]
+#![feature(int_roundings)]
 
 pub use errors::*;
 pub use rust_fixed_point_decimal_core::{ParseDecimalError, MAX_PREC};
