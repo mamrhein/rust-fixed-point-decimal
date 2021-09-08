@@ -106,7 +106,7 @@ mod tests {
     }
 
     #[test]
-    fn test_max() {
+    fn test_cmp_max() {
         assert_eq!(Decimal::<5>::MAX, Decimal::<5>::MAX);
         assert_ne!(Decimal::<2>::MAX, Decimal::<9>::MAX);
         assert!(Decimal::<2>::MAX > Decimal::<3>::MAX);
@@ -114,7 +114,7 @@ mod tests {
     }
 
     #[test]
-    fn test_min() {
+    fn test_cmp_min() {
         assert_eq!(Decimal::<5>::MIN, Decimal::<5>::MIN);
         assert_ne!(Decimal::<2>::MIN, Decimal::<9>::MIN);
         assert!(Decimal::<2>::MIN < Decimal::<3>::MIN);
