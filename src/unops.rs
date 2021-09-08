@@ -23,6 +23,9 @@ where
     type Output = Self;
 
     /// Returns -self.
+    ///
+    /// Panics with 'attempt to negate with overflow' when called on
+    /// Decimal::MIN!
     fn neg(self) -> Self::Output {
         Self::Output { coeff: -self.coeff }
     }
@@ -75,6 +78,22 @@ mod tests {
         assert_eq!(x.coeff, -y.coeff);
         let z = -y;
         assert_eq!(x.coeff, z.coeff);
+    }
+
+    #[test]
+    fn test_neg_corner_cases_ok() {
+        let x = Decimal::<2>::MAX;
+        let y = -x;
+        assert_eq!(x.coeff, -y.coeff);
+        let z = -y;
+        assert_eq!(x.coeff, z.coeff);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_neg_corner_cases_fail() {
+        let x = Decimal::<2>::MIN;
+        let _y = -x;
     }
 
     #[test]
