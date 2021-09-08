@@ -59,7 +59,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::cmp::Ordering;
+    use std::cmp::{max, min, Ordering};
 
     use crate::Decimal;
 
@@ -119,5 +119,15 @@ mod tests {
         assert_ne!(Decimal::<2>::MIN, Decimal::<9>::MIN);
         assert!(Decimal::<2>::MIN < Decimal::<3>::MIN);
         assert!(Decimal::<6>::MIN > Decimal::<4>::MIN);
+    }
+
+    #[test]
+    fn test_min_max() {
+        let x = Decimal::<2>::new_raw(12345);
+        let y = Decimal::<2>::new_raw(12344);
+        assert_eq!(min(x, y), y);
+        assert_eq!(min(x, x), x);
+        assert_eq!(max(x, y), x);
+        assert_eq!(max(x, x), x);
     }
 }
