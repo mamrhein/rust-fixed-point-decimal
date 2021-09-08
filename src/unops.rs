@@ -25,7 +25,7 @@ where
     /// Returns -self.
     ///
     /// Panics with 'attempt to negate with overflow' when called on
-    /// Decimal::MIN!
+    /// Decimal::<P>::MIN!
     fn neg(self) -> Self::Output {
         Self::Output { coeff: -self.coeff }
     }
@@ -44,6 +44,9 @@ where
     }
 
     /// Returns the largest integral value <= `self`.
+    ///
+    /// Panics with 'attempt to multiply with overflow' when called on a value
+    /// less than (Decimal::<P>::MIN / 10 ^ P) * 10 ^ P !
     #[inline]
     pub fn floor(&self) -> Self {
         match P {
@@ -55,6 +58,9 @@ where
     }
 
     /// Returns the smallest integral value >= `self`.
+    ///
+    /// Panics with 'attempt to multiply with overflow' when called on a value
+    /// greater than (Decimal::<P>::MAX / 10 ^ P) * 10 ^ P !
     #[inline]
     pub fn ceil(&self) -> Self {
         match P {
@@ -123,6 +129,13 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_floor_overflow() {
+        let x = Decimal::<3>::new_raw((i128::MIN / 1000) * 1000 - 1);
+        let _y = x.floor();
+    }
+
+    #[test]
     fn test_ceil() {
         let x = Decimal::<0>::new_raw(123);
         let y = x.ceil();
@@ -137,5 +150,12 @@ mod tests {
         assert_eq!(y.coeff, 0);
         let z = y.ceil();
         assert_eq!(y.coeff, z.coeff);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_ceil_overflow() {
+        let x = Decimal::<2>::new_raw((i128::MAX / 100) * 100 + 1);
+        let _y = x.ceil();
     }
 }
