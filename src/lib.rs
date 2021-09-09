@@ -50,18 +50,19 @@ where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     // needs to be public because of macro Dec!
+    #[inline(always)]
     pub fn new_raw(val: i128) -> Self {
-        Decimal { coeff: val }
+        Self { coeff: val }
     }
 
     /// Internal representation. For debugging only!
-    #[inline]
+    #[inline(always)]
     pub fn coefficient(self) -> i128 {
         self.coeff
     }
 
     /// Number of fractional decimal digits
-    #[inline]
+    #[inline(always)]
     pub const fn precision(self) -> u8 {
         P
     }
@@ -97,6 +98,7 @@ where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     /// Default value: Decimal::<P>::ZERO
+    #[inline(always)]
     fn default() -> Self {
         Self::ZERO
     }
