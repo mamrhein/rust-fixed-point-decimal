@@ -81,6 +81,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_zero() {
         assert!(Decimal::<0>::is_zero(&Decimal::<0>::zero()));
