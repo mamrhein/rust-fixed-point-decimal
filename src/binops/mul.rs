@@ -28,7 +28,7 @@ impl One for Decimal<0> {
 
     #[inline(always)]
     fn is_one(&self) -> bool {
-        self.coeff == Self::ONE.coeff
+        self.eq_one()
     }
 }
 
@@ -38,13 +38,13 @@ where
     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
 {
     #[inline(always)]
-    fn one() -> Self {
+    pub fn one() -> Self {
         Self::ONE
     }
 
     #[inline(always)]
-    fn is_one(&self) -> bool {
-        self.coeff == Self::ONE.coeff
+    pub fn is_one(&self) -> bool {
+        self.eq_one()
     }
 }
 
