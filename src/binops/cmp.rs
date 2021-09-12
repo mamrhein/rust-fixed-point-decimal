@@ -57,6 +57,21 @@ where
     }
 }
 
+impl<const P: u8> Decimal<P>
+where
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+{
+    #[inline(always)]
+    pub fn eq_zero(&self) -> bool {
+        self.coeff == 0
+    }
+
+    #[inline(always)]
+    pub fn eq_one(&self) -> bool {
+        self.coeff == Self::ONE.coeff
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::cmp::{max, min, Ordering};
@@ -129,5 +144,53 @@ mod tests {
         assert_eq!(min(x, x), x);
         assert_eq!(max(x, y), x);
         assert_eq!(max(x, x), x);
+    }
+
+    #[test]
+    fn test_eq_zero() {
+        assert!(Decimal::<0>::eq_zero(&Decimal::<0>::ZERO));
+        assert!(Decimal::<1>::eq_zero(&Decimal::<1>::ZERO));
+        assert!(Decimal::<2>::eq_zero(&Decimal::<2>::ZERO));
+        assert!(Decimal::<3>::eq_zero(&Decimal::<3>::ZERO));
+        assert!(Decimal::<4>::eq_zero(&Decimal::<4>::ZERO));
+        assert!(Decimal::<5>::eq_zero(&Decimal::<5>::ZERO));
+        assert!(Decimal::<6>::eq_zero(&Decimal::<6>::ZERO));
+        assert!(Decimal::<7>::eq_zero(&Decimal::<7>::ZERO));
+        assert!(Decimal::<8>::eq_zero(&Decimal::<8>::ZERO));
+        assert!(Decimal::<9>::eq_zero(&Decimal::<9>::ZERO));
+        assert!(!Decimal::<0>::eq_zero(&Decimal::<0>::ONE));
+        assert!(!Decimal::<1>::eq_zero(&Decimal::<1>::ONE));
+        assert!(!Decimal::<2>::eq_zero(&Decimal::<2>::ONE));
+        assert!(!Decimal::<3>::eq_zero(&Decimal::<3>::ONE));
+        assert!(!Decimal::<4>::eq_zero(&Decimal::<4>::ONE));
+        assert!(!Decimal::<5>::eq_zero(&Decimal::<5>::ONE));
+        assert!(!Decimal::<6>::eq_zero(&Decimal::<6>::ONE));
+        assert!(!Decimal::<7>::eq_zero(&Decimal::<7>::ONE));
+        assert!(!Decimal::<8>::eq_zero(&Decimal::<8>::ONE));
+        assert!(!Decimal::<9>::eq_zero(&Decimal::<9>::ONE));
+    }
+
+    #[test]
+    fn test_eq_one() {
+        assert!(Decimal::<0>::eq_one(&Decimal::<0>::ONE));
+        assert!(Decimal::<1>::eq_one(&Decimal::<1>::ONE));
+        assert!(Decimal::<2>::eq_one(&Decimal::<2>::ONE));
+        assert!(Decimal::<3>::eq_one(&Decimal::<3>::ONE));
+        assert!(Decimal::<4>::eq_one(&Decimal::<4>::ONE));
+        assert!(Decimal::<5>::eq_one(&Decimal::<5>::ONE));
+        assert!(Decimal::<6>::eq_one(&Decimal::<6>::ONE));
+        assert!(Decimal::<7>::eq_one(&Decimal::<7>::ONE));
+        assert!(Decimal::<8>::eq_one(&Decimal::<8>::ONE));
+        assert!(Decimal::<9>::eq_one(&Decimal::<9>::ONE));
+        assert!(!Decimal::<0>::eq_one(&Decimal::<0>::ZERO));
+        assert!(!Decimal::<1>::eq_one(&Decimal::<1>::ZERO));
+        assert!(!Decimal::<2>::eq_one(&Decimal::<2>::ZERO));
+        assert!(!Decimal::<3>::eq_one(&Decimal::<3>::ZERO));
+        assert!(!Decimal::<4>::eq_one(&Decimal::<4>::ZERO));
+        assert!(!Decimal::<5>::eq_one(&Decimal::<5>::ZERO));
+        assert!(!Decimal::<6>::eq_one(&Decimal::<6>::ZERO));
+        assert!(!Decimal::<7>::eq_one(&Decimal::<7>::ZERO));
+        assert!(!Decimal::<8>::eq_one(&Decimal::<8>::ZERO));
+        assert!(!Decimal::<9>::eq_one(&Decimal::<9>::ZERO));
     }
 }
