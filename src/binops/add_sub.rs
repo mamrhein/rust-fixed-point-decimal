@@ -33,10 +33,12 @@ where
     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
     Decimal<P>: Add<Output = Decimal<P>>,
 {
+    #[inline(always)]
     fn zero() -> Self {
         Self::ZERO
     }
 
+    #[inline(always)]
     fn is_zero(&self) -> bool {
         self.coeff.is_zero()
     }
@@ -50,13 +52,19 @@ where
 {
     type Output = Decimal<{ const_max_u8(P, Q) }>;
 
+    #[inline(always)]
     fn add(self, other: Decimal<Q>) -> Self::Output {
-        let res_val = match P.cmp(&Q) {
-            Ordering::Equal => self.coeff + other.coeff,
-            Ordering::Greater => self.coeff + mul_pow_ten(other.coeff, P - Q),
-            Ordering::Less => mul_pow_ten(self.coeff, Q - P) + other.coeff,
-        };
-        Self::Output::new_raw(res_val)
+        match P.cmp(&Q) {
+            Ordering::Equal => Self::Output {
+                coeff: self.coeff + other.coeff,
+            },
+            Ordering::Greater => Self::Output {
+                coeff: self.coeff + mul_pow_ten(other.coeff, P - Q),
+            },
+            Ordering::Less => Self::Output {
+                coeff: mul_pow_ten(self.coeff, Q - P) + other.coeff,
+            },
+        }
     }
 }
 
@@ -68,13 +76,19 @@ where
 {
     type Output = Decimal<{ const_max_u8(P, Q) }>;
 
+    #[inline(always)]
     fn sub(self, other: Decimal<Q>) -> Self::Output {
-        let res_val = match P.cmp(&Q) {
-            Ordering::Equal => self.coeff - other.coeff,
-            Ordering::Greater => self.coeff - mul_pow_ten(other.coeff, P - Q),
-            Ordering::Less => mul_pow_ten(self.coeff, Q - P) - other.coeff,
-        };
-        Self::Output::new_raw(res_val)
+        match P.cmp(&Q) {
+            Ordering::Equal => Self::Output {
+                coeff: self.coeff - other.coeff,
+            },
+            Ordering::Greater => Self::Output {
+                coeff: self.coeff - mul_pow_ten(other.coeff, P - Q),
+            },
+            Ordering::Less => Self::Output {
+                coeff: mul_pow_ten(self.coeff, Q - P) - other.coeff,
+            },
+        }
     }
 }
 
