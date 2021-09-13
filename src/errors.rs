@@ -20,6 +20,7 @@ pub enum DecimalError {
     MaxValueExceeded,
     InfiniteValue,
     NotANumber,
+    DivisionByZero,
 }
 
 impl DecimalError {
@@ -35,6 +36,7 @@ impl DecimalError {
                 "Can't convert infinite value to Decimal."
             }
             DecimalError::NotANumber => "Given value is not a number.",
+            DecimalError::DivisionByZero => "Division by Zero.",
         }
     }
 }

@@ -9,4 +9,5 @@
 
 mod add_sub;
 mod cmp;
+mod div;
 mod mul;
