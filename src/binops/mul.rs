@@ -9,7 +9,7 @@
 
 use std::ops::Mul;
 
-use num::One;
+use num::{Integer, One};
 
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
@@ -48,6 +48,25 @@ where
     }
 }
 
+#[cfg(test)]
+mod one_tests {
+    use super::*;
+
+    #[test]
+    fn test_one() {
+        assert!(Decimal::<0>::is_one(&Decimal::<0>::one()));
+        assert!(Decimal::<1>::is_one(&Decimal::<1>::one()));
+        assert!(Decimal::<2>::is_one(&Decimal::<2>::one()));
+        assert!(Decimal::<3>::is_one(&Decimal::<3>::one()));
+        assert!(Decimal::<4>::is_one(&Decimal::<4>::one()));
+        assert!(Decimal::<5>::is_one(&Decimal::<5>::one()));
+        assert!(Decimal::<6>::is_one(&Decimal::<6>::one()));
+        assert!(Decimal::<7>::is_one(&Decimal::<7>::one()));
+        assert!(Decimal::<8>::is_one(&Decimal::<8>::one()));
+        assert!(Decimal::<9>::is_one(&Decimal::<9>::one()));
+    }
+}
+
 pub const fn const_sum_u8(a: u8, b: u8) -> u8 {
     a + b
 }
@@ -67,22 +86,8 @@ where
 }
 
 #[cfg(test)]
-mod tests {
+mod mul_decimal_tests {
     use super::*;
-
-    #[test]
-    fn test_one() {
-        assert!(Decimal::<0>::is_one(&Decimal::<0>::one()));
-        assert!(Decimal::<1>::is_one(&Decimal::<1>::one()));
-        assert!(Decimal::<2>::is_one(&Decimal::<2>::one()));
-        assert!(Decimal::<3>::is_one(&Decimal::<3>::one()));
-        assert!(Decimal::<4>::is_one(&Decimal::<4>::one()));
-        assert!(Decimal::<5>::is_one(&Decimal::<5>::one()));
-        assert!(Decimal::<6>::is_one(&Decimal::<6>::one()));
-        assert!(Decimal::<7>::is_one(&Decimal::<7>::one()));
-        assert!(Decimal::<8>::is_one(&Decimal::<8>::one()));
-        assert!(Decimal::<9>::is_one(&Decimal::<9>::one()));
-    }
 
     #[test]
     fn test_mul_same_prec() {
@@ -119,5 +124,88 @@ mod tests {
     fn test_mul_neg_overflow() {
         let x = Decimal::<2>::new_raw(i128::MIN);
         let _y = x * Decimal::<2>::NEG_ONE;
+    }
+}
+
+impl<T, const P: u8> Mul<T> for Decimal<P>
+where
+    T: Integer,
+    i128: std::convert::From<T>,
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn mul(self, other: T) -> Self::Output {
+        Self::Output {
+            coeff: self.coeff * i128::from(other),
+        }
+    }
+}
+
+macro_rules! impl_mul_decimal_for_int {
+    () => {
+        impl_mul_decimal_for_int!(u8, i8, u16, i16, u32, i32, u64, i64, i128);
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const P: u8> Mul<Decimal<P>> for $t
+        where
+            PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+        {
+            type Output = Decimal<P>;
+
+            #[inline(always)]
+            fn mul(self, other: Decimal<P>) -> Self::Output {
+                other * self
+            }
+        }
+        )*
+    }
+}
+
+impl_mul_decimal_for_int!();
+
+#[cfg(test)]
+#[allow(clippy::neg_multiply)]
+mod mul_integer_tests {
+    use super::*;
+
+    macro_rules! gen_mul_integer_tests {
+        ($func:ident, $t:ty, $p:expr, $coeff:expr) => {
+            #[test]
+            fn $func() {
+                let d = Decimal::<$p>::new_raw($coeff);
+                let i = <$t>::MAX;
+                let r = d * i;
+                assert_eq!(r.precision(), d.precision());
+                assert_eq!(r.coeff, i as i128 * $coeff);
+                let z = i * d;
+                assert_eq!(z.precision(), r.precision());
+                assert_eq!(z.coeff, r.coeff);
+            }
+        };
+    }
+
+    gen_mul_integer_tests!(test_mul_u8, u8, 2, -1);
+    gen_mul_integer_tests!(test_mul_i8, i8, 0, 123);
+    gen_mul_integer_tests!(test_mul_u16, u16, 4, 11);
+    gen_mul_integer_tests!(test_mul_i16, i16, 4, 1234567);
+    gen_mul_integer_tests!(test_mul_u32, u32, 1, 0);
+    gen_mul_integer_tests!(test_mul_i32, i32, 9, -1234);
+    gen_mul_integer_tests!(test_mul_u64, u64, 3, 321);
+    gen_mul_integer_tests!(test_mul_i64, i64, 7, -12345678901234567890);
+
+    #[test]
+    fn test_mul_i128() {
+        let coeff = 748_i128;
+        let d = Decimal::<2>::new_raw(coeff);
+        let i = 12345_i128;
+        let r = d * i;
+        assert_eq!(r.precision(), d.precision());
+        assert_eq!(r.coeff, i * coeff);
+        let z = i * d;
+        assert_eq!(z.precision(), r.precision());
+        assert_eq!(z.coeff, r.coeff);
     }
 }
