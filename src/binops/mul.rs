@@ -48,13 +48,17 @@ where
     }
 }
 
+pub const fn const_sum_u8(a: u8, b: u8) -> u8 {
+    a + b
+}
+
 impl<const P: u8, const Q: u8> Mul<Decimal<Q>> for Decimal<P>
 where
     PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
     PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ (P + Q) <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ (const_sum_u8(P, Q)) <= crate::MAX_PREC }>: True,
 {
-    type Output = Decimal<{ P + Q }>;
+    type Output = Decimal<{ const_sum_u8(P, Q) }>;
 
     #[inline(always)]
     fn mul(self, other: Decimal<Q>) -> Self::Output {
