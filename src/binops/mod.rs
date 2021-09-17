@@ -11,3 +11,4 @@ mod add_sub;
 mod cmp;
 mod div;
 mod mul;
+mod mul_rounded;
