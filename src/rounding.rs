@@ -98,6 +98,7 @@ impl<const P: u8> RoundInto<i128> for Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
+    #[inline(always)]
     fn round_into(self: Self) -> i128 {
         div_rounded(self.coeff, ten_pow(P), None)
     }
@@ -109,10 +110,11 @@ where
     PrecLimitCheck<{ Q <= MAX_PREC }>: True,
     PrecLimitCheck<{ Q < P }>: True,
 {
+    #[inline(always)]
     fn round_into(self: Self) -> Decimal<Q> {
-        let divisor = ten_pow(P - Q);
-        let coeff = div_rounded(self.coeff, divisor, None);
-        Decimal::<Q>::new_raw(coeff)
+        Decimal::<Q> {
+            coeff: div_rounded(self.coeff, ten_pow(P - Q), None),
+        }
     }
 }
 
