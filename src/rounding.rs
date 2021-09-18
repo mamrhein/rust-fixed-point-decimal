@@ -7,9 +7,7 @@
 // $Source$
 // $Revision$
 
-use std::ops::Shl;
-
-use num::{FromPrimitive, Integer};
+use num::{abs, FromPrimitive, Integer, One, Zero};
 use rust_fixed_point_decimal_core::ten_pow;
 
 use crate::{
@@ -121,27 +119,21 @@ where
 // rounding helper
 
 /// Divide 'divident' by 'divisor' and round result according to 'mode'.
-///
-/// divisor must be >= 0 !
-pub(crate) fn div_rounded<T>(
-    divident: T,
-    divisor: T,
+pub(crate) fn div_rounded(
+    divident: i128,
+    divisor: i128,
     mode: Option<RoundingMode>,
-) -> T
-where
-    T: Copy + Integer + FromPrimitive + Shl<u8, Output = T>,
-{
-    let zero = T::zero();
-    assert!(divisor > zero);
-    let one = T::one();
-    let five = T::from_u8(5).unwrap();
+) -> i128 {
+    let zero = i128::zero();
+    let one = i128::one();
+    let five = i128::from_u8(5).unwrap();
     let (quot, rem) = divident.div_mod_floor(&divisor);
     // div_mod_floor => rem >= 0
     if rem == zero {
         // no need for rounding
         return quot;
     }
-    // here: divisor >= 2 => rem <= divident / 2,
+    // here: |divisor| >= 2 => rem <= |divident| / 2,
     // therefor it's safe to use rem << 1
     let mode = match mode {
         None => RoundingMode::default(),
@@ -178,33 +170,40 @@ where
         }
         RoundingMode::RoundHalfDown => {
             // Round 5 down, rest to nearest:
-            // remainder > divisor / 2 or
-            // remainder = divisor / 2 and quotient < 0
+            // remainder > |divisor| / 2 or
+            // remainder = |divisor| / 2 and quotient < 0
             // => add 1
-            let rem_doubled: T = rem << 1;
-            if rem_doubled > divisor || rem_doubled == divisor && quot < zero {
+            let rem_doubled = rem << 1;
+            let abs_divisor = abs(divisor);
+            if rem_doubled > abs_divisor
+                || rem_doubled == abs_divisor && quot < zero
+            {
                 return quot + one;
             }
         }
         RoundingMode::RoundHalfEven => {
             // Round 5 to nearest even, rest to nearest:
-            // remainder > divisor / 2 or
-            // remainder = divisor / 2 and quotient not even
+            // remainder > |divisor| / 2 or
+            // remainder = |divisor| / 2 and quotient not even
             // => add 1
             let rem_doubled = rem << 1;
-            if rem_doubled > divisor
-                || rem_doubled == divisor && !quot.is_even()
+            let abs_divisor = abs(divisor);
+            if rem_doubled > abs_divisor
+                || rem_doubled == abs_divisor && !quot.is_even()
             {
                 return quot + one;
             }
         }
         RoundingMode::RoundHalfUp => {
             // Round 5 up (away from 0), rest to nearest:
-            // remainder > divisor / 2 or
-            // remainder = divisor / 2 and quotient >= 0
+            // remainder > |divisor| / 2 or
+            // remainder = |divisor| / 2 and quotient >= 0
             // => add 1
             let rem_doubled = rem << 1;
-            if rem_doubled > divisor || rem_doubled == divisor && quot >= zero {
+            let abs_divisor = abs(divisor);
+            if rem_doubled > abs_divisor
+                || rem_doubled == abs_divisor && quot >= zero
+            {
                 return quot + one;
             }
         }
@@ -222,11 +221,9 @@ where
 
 #[cfg(test)]
 mod helper_tests {
-    use std::convert::TryInto;
-
     use super::*;
 
-    const TESTDATA: [(i32, i32, RoundingMode, i32); 33] = [
+    const TESTDATA: [(i128, i128, RoundingMode, i128); 33] = [
         (17, 5, RoundingMode::Round05Up, 3),
         (27, 5, RoundingMode::Round05Up, 6),
         (-17, 5, RoundingMode::Round05Up, -3),
@@ -259,63 +256,16 @@ mod helper_tests {
         (10802, 4321, RoundingMode::RoundUp, 3),
         (-19, 2, RoundingMode::RoundUp, -10),
         (-10802, 4321, RoundingMode::RoundUp, -3),
-        (i32::MAX, 1, RoundingMode::RoundUp, i32::MAX),
+        (i32::MAX as i128, 1, RoundingMode::RoundUp, i32::MAX as i128),
     ];
-
-    macro_rules! test_div_rounded_uint {
-        ($(($func:ident, $t:ty)),*) => {
-            $(
-            #[test]
-            fn $func() {
-                for (divident, divisor, rnd_mode, result) in TESTDATA {
-                    if divident > 0
-                            && !TryInto::<$t>::try_into(divident).is_err() {
-                        let quot = div_rounded(TryInto::<$t>::try_into(divident).unwrap(),
-                                               TryInto::<$t>::try_into(divisor).unwrap(),
-                                               Some(rnd_mode));
-                        // println!("{} {} {:?}", divident, divisor, rnd_mode);
-                        assert_eq!(quot, TryInto::<$t>::try_into(result).unwrap());
-                    }
-                }
-            }
-            )*
+    #[test]
+    fn test_div_rounded() {
+        for (divident, divisor, rnd_mode, result) in TESTDATA {
+            let quot = div_rounded(divident, divisor, Some(rnd_mode));
+            // println!("{} {} {:?}", divident, divisor, rnd_mode);
+            assert_eq!(quot, result);
         }
     }
-
-    test_div_rounded_uint!(
-        (test_div_rounded_u8, u8),
-        (test_div_rounded_u16, u16),
-        (test_div_rounded_u32, u32),
-        (test_div_rounded_u64, u64),
-        (test_div_rounded_u128, u128)
-    );
-
-    macro_rules! test_div_rounded_int {
-        ($(($func:ident, $t:ty)),*) => {
-            $(
-            #[test]
-            fn $func() {
-                for (divident, divisor, rnd_mode, result) in TESTDATA {
-                    if !TryInto::<$t>::try_into(divident).is_err() {
-                        let quot = div_rounded(TryInto::<$t>::try_into(divident).unwrap(),
-                                               TryInto::<$t>::try_into(divisor).unwrap(),
-                                               Some(rnd_mode));
-                        // println!("{} {} {:?}", divident, divisor, rnd_mode);
-                        assert_eq!(quot, TryInto::<$t>::try_into(result).unwrap());
-                    }
-                }
-            }
-            )*
-        }
-    }
-
-    test_div_rounded_int!(
-        (test_div_rounded_i8, i8),
-        (test_div_rounded_i16, i16),
-        (test_div_rounded_i32, i32),
-        (test_div_rounded_i64, i64),
-        (test_div_rounded_i128, i128)
-    );
 }
 
 #[cfg(test)]
