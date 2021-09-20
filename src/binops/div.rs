@@ -175,13 +175,19 @@ mod div_integer_tests {
             #[test]
             fn $func() {
                 let d = Decimal::<$p>::new_raw($coeff);
-                let i = 10;
+                let i: $t = 10;
                 let r = d / i;
                 assert_eq!(r.precision(), MAX_PREC);
-                assert_eq!(r.coeff, $coeff * ten_pow(MAX_PREC - $p) / i);
+                assert_eq!(
+                    r.coeff,
+                    $coeff * ten_pow(MAX_PREC - $p) / i as i128
+                );
                 let z = i / d;
                 assert_eq!(z.precision(), MAX_PREC);
-                assert_eq!(z.coeff, i * ten_pow(MAX_PREC + $p) / $coeff);
+                assert_eq!(
+                    z.coeff,
+                    i as i128 * ten_pow(MAX_PREC + $p) / $coeff
+                );
             }
         };
     }
