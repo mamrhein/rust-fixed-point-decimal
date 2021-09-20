@@ -58,7 +58,9 @@ where
 }
 
 #[cfg(test)]
-mod div_decimal_tests {
+mod div_rounded_decimal_tests {
+    use rust_fixed_point_decimal_core::mul_pow_ten;
+
     use super::*;
 
     #[test]
@@ -75,5 +77,32 @@ mod div_decimal_tests {
         let y = Decimal::<6>::new_raw(244140625);
         let z = x / y;
         assert_eq!(z.coeff, 505679007794567900774400);
+    }
+
+    #[test]
+    fn test_div_rounded_by_one() {
+        let x = Decimal::<5>::new_raw(17);
+        let y = Decimal::<2>::ONE;
+        let z: Decimal<4> = x.div_rounded(y);
+        assert_eq!(z.coeff, 2);
+        let y = Decimal::<9>::ONE;
+        let z: Decimal<4> = x.div_rounded(y);
+        assert_eq!(z.coeff, 2);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_div_rounded_by_zero() {
+        let x = Decimal::<5>::new_raw(17);
+        let y = Decimal::<2>::ZERO;
+        let _z: Decimal<5> = x.div_rounded(y);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_div_rounded_overflow() {
+        let x = Decimal::<0>::new_raw(mul_pow_ten(17, 20));
+        let y = Decimal::<9>::new_raw(2);
+        let _z: Decimal<9> = x.div_rounded(y);
     }
 }
