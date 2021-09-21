@@ -15,7 +15,7 @@ use rust_fixed_point_decimal_core::ten_pow;
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
     rounding::div_rounded,
-    Decimal, DecimalError,
+    Decimal, DecimalError, MAX_PREC,
 };
 
 pub trait DivRounded<Rhs, Result = Self> {
@@ -26,10 +26,10 @@ pub trait DivRounded<Rhs, Result = Self> {
 impl<const P: u8, const Q: u8, const R: u8> DivRounded<Decimal<Q>, Decimal<R>>
     for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
     Decimal<P>: Div<Decimal<Q>>,
-    PrecLimitCheck<{ R <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ R <= MAX_PREC }>: True,
 {
     #[inline(always)]
     fn div_rounded(self, other: Decimal<Q>) -> Decimal<R> {
@@ -112,8 +112,8 @@ impl<T, const P: u8, const R: u8> DivRounded<T, Decimal<R>> for Decimal<P>
 where
     T: Integer,
     i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ R <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+    PrecLimitCheck<{ R <= MAX_PREC }>: True,
 {
     #[inline(always)]
     fn div_rounded(self, other: T) -> Decimal<R> {
@@ -191,5 +191,101 @@ mod div_rounded_decimal_by_int_tests {
         987654321_i128,
         5,
         1249999988734375
+    );
+}
+
+macro_rules! impl_div_rounded_decimal_for_int {
+    () => {
+        impl_div_rounded_decimal_for_int!(
+            u8, i8, u16, i16, u32, i32, u64, i64, i128
+        );
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const Q: u8, const R: u8> DivRounded<Decimal<Q>, Decimal<R>> for $t
+        where
+            PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+        {
+            fn div_rounded(self, other: Decimal<Q>) -> Decimal<R> {
+                if other.eq_zero() {
+                    panic!("{}", DecimalError::DivisionByZero);
+                }
+                if Q == 0 && R == 0 {
+                    Decimal::<R> {
+                        coeff: div_rounded(self.into(), other.coeff, None)
+                    }
+                }
+                else {
+                    Decimal::<R> {
+                        coeff: div_rounded(i128::from(self) * ten_pow(R + Q),
+                                           other.coeff,
+                                           None)
+                    }
+                }
+            }
+        }
+        )*
+    }
+}
+
+impl_div_rounded_decimal_for_int!();
+
+#[cfg(test)]
+#[allow(clippy::neg_multiply)]
+mod div_rounded_int_by_decimal_tests {
+    use super::*;
+
+    macro_rules! gen_div_rounded_int_by_decimal_tests {
+        ($func:ident, $p:expr, $coeff:expr, $i:expr, $r:expr,
+         $res_coeff:expr) => {
+            #[test]
+            fn $func() {
+                let d = Decimal::<$p>::new_raw($coeff);
+                let i = $i;
+                let r: Decimal<$r> = i.div_rounded(d);
+                assert_eq!(r.coeff, $res_coeff);
+            }
+        };
+    }
+
+    gen_div_rounded_int_by_decimal_tests!(test_u8, 2, -14, 3_u8, 5, -2142857);
+    gen_div_rounded_int_by_decimal_tests!(test_i8, 0, -12, -3_i8, 5, 25000);
+    gen_div_rounded_int_by_decimal_tests!(test_u16, 2, -17, 3_u16, 5, -1764706);
+    gen_div_rounded_int_by_decimal_tests!(test_i16, 3, -12, -3_i16, 2, 25000);
+    gen_div_rounded_int_by_decimal_tests!(
+        test_u32,
+        4,
+        u32::MAX as i128,
+        1_u32,
+        9,
+        2328
+    );
+    gen_div_rounded_int_by_decimal_tests!(
+        test_i32, 3, 12345, -328_i32, 5, -2656946
+    );
+    gen_div_rounded_int_by_decimal_tests!(
+        test_u64,
+        9,
+        -1,
+        2_u64,
+        5,
+        -200000000000000
+    );
+    gen_div_rounded_int_by_decimal_tests!(
+        test_i64,
+        3,
+        u64::MAX as i128,
+        i64::MIN,
+        2,
+        -50000
+    );
+    gen_div_rounded_int_by_decimal_tests!(
+        test_i128,
+        0,
+        1234567890,
+        987654321987654321_i128,
+        1,
+        8000000081
     );
 }
