@@ -7,6 +7,8 @@
 // $Source$
 // $Revision$
 
+use std::cell::RefCell;
+
 use num::{FromPrimitive, Integer, One, Zero};
 use rust_fixed_point_decimal_core::ten_pow;
 
@@ -15,7 +17,7 @@ use crate::{
     Decimal, MAX_PREC,
 };
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RoundingMode {
     /// Round away from zero if last digit after rounding towards zero would
     /// have been 0 or 5; otherwise round towards zero.
@@ -36,9 +38,20 @@ pub enum RoundingMode {
     RoundUp,
 }
 
+thread_local!(
+    static DFLT_ROUNDING_MODE: RefCell<RoundingMode> =
+        RefCell::new(RoundingMode::RoundHalfEven)
+);
+
 impl Default for RoundingMode {
     fn default() -> Self {
-        RoundingMode::RoundHalfEven
+        DFLT_ROUNDING_MODE.with(|m| *m.borrow())
+    }
+}
+
+impl RoundingMode {
+    fn set_default(mode: RoundingMode) {
+        DFLT_ROUNDING_MODE.with(|m| *m.borrow_mut() = mode)
     }
 }
 
@@ -214,6 +227,29 @@ pub(crate) fn div_rounded(
     }
     // fall-through: round towards 0
     quot
+}
+
+#[cfg(test)]
+mod rounding_mode_tests {
+    use super::*;
+
+    #[test]
+    fn test1() {
+        assert_eq!(RoundingMode::default(), RoundingMode::RoundHalfEven);
+        RoundingMode::set_default(RoundingMode::RoundUp);
+        assert_eq!(RoundingMode::default(), RoundingMode::RoundUp);
+        RoundingMode::set_default(RoundingMode::RoundHalfEven);
+        assert_eq!(RoundingMode::default(), RoundingMode::RoundHalfEven);
+    }
+
+    #[test]
+    fn test2() {
+        assert_eq!(RoundingMode::default(), RoundingMode::RoundHalfEven);
+        RoundingMode::set_default(RoundingMode::RoundHalfUp);
+        assert_eq!(RoundingMode::default(), RoundingMode::RoundHalfUp);
+        RoundingMode::set_default(RoundingMode::RoundHalfEven);
+        assert_eq!(RoundingMode::default(), RoundingMode::RoundHalfEven);
+    }
 }
 
 #[cfg(test)]
