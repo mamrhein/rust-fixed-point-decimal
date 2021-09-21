@@ -9,6 +9,7 @@
 
 use std::{cmp::Ordering, ops::Div};
 
+use num::Integer;
 use rust_fixed_point_decimal_core::ten_pow;
 
 use crate::{
@@ -105,4 +106,90 @@ mod div_rounded_decimal_tests {
         let y = Decimal::<9>::new_raw(2);
         let _z: Decimal<9> = x.div_rounded(y);
     }
+}
+
+impl<T, const P: u8, const R: u8> DivRounded<T, Decimal<R>> for Decimal<P>
+where
+    T: Integer,
+    i128: std::convert::From<T>,
+    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ R <= crate::MAX_PREC }>: True,
+{
+    #[inline(always)]
+    fn div_rounded(self, other: T) -> Decimal<R> {
+        if other.is_zero() {
+            panic!("{}", DecimalError::DivisionByZero);
+        }
+        match P.cmp(&R) {
+            Ordering::Equal => Decimal::<R> {
+                coeff: div_rounded(self.coeff, other.into(), None),
+            },
+            Ordering::Less => Decimal::<R> {
+                coeff: div_rounded(
+                    self.coeff * ten_pow(R - P),
+                    other.into(),
+                    None,
+                ),
+            },
+            Ordering::Greater => Decimal::<R> {
+                coeff: div_rounded(
+                    self.coeff,
+                    i128::from(other) * ten_pow(P - R),
+                    None,
+                ),
+            },
+        }
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::neg_multiply)]
+mod div_rounded_decimal_by_int_tests {
+    use super::*;
+
+    macro_rules! gen_div_rounded_decimal_by_int_tests {
+        ($func:ident, $p:expr, $coeff:expr, $i:expr, $r:expr,
+         $res_coeff:expr) => {
+            #[test]
+            fn $func() {
+                let d = Decimal::<$p>::new_raw($coeff);
+                let i = $i;
+                let r: Decimal<$r> = d.div_rounded(i);
+                assert_eq!(r.coeff, $res_coeff);
+            }
+        };
+    }
+
+    gen_div_rounded_decimal_by_int_tests!(test_u8, 2, -1, 3_u8, 5, -333);
+    gen_div_rounded_decimal_by_int_tests!(test_i8, 0, -12, -3_i8, 5, 400000);
+    gen_div_rounded_decimal_by_int_tests!(test_u16, 2, -1, 3_u16, 5, -333);
+    gen_div_rounded_decimal_by_int_tests!(test_i16, 3, -12, -3_i16, 5, 400);
+    gen_div_rounded_decimal_by_int_tests!(
+        test_u32,
+        4,
+        u32::MAX as i128,
+        1_u32,
+        5,
+        u32::MAX as i128 * 10_i128
+    );
+    gen_div_rounded_decimal_by_int_tests!(
+        test_i32, 3, 12345, -328_i32, 5, -3764
+    );
+    gen_div_rounded_decimal_by_int_tests!(test_u64, 9, -1, 2_u64, 5, 0);
+    gen_div_rounded_decimal_by_int_tests!(
+        test_i64,
+        3,
+        u64::MAX as i128,
+        i64::MIN,
+        2,
+        0
+    );
+    gen_div_rounded_decimal_by_int_tests!(
+        test_i128,
+        0,
+        12345678901234567890,
+        987654321_i128,
+        5,
+        1249999988734375
+    );
 }
