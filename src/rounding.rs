@@ -7,7 +7,7 @@
 // $Source$
 // $Revision$
 
-use num::{abs, FromPrimitive, Integer, One, Zero};
+use num::{FromPrimitive, Integer, One, Zero};
 use rust_fixed_point_decimal_core::ten_pow;
 
 use crate::{
@@ -120,15 +120,19 @@ where
 
 /// Divide 'divident' by 'divisor' and round result according to 'mode'.
 pub(crate) fn div_rounded(
-    divident: i128,
-    divisor: i128,
+    mut divident: i128,
+    mut divisor: i128,
     mode: Option<RoundingMode>,
 ) -> i128 {
     let zero = i128::zero();
     let one = i128::one();
     let five = i128::from_u8(5).unwrap();
+    if divisor < 0 {
+        divident = -divident;
+        divisor = -divisor;
+    }
     let (quot, rem) = divident.div_mod_floor(&divisor);
-    // div_mod_floor => rem >= 0
+    // div_mod_floor with divisor > 0 => rem >= 0
     if rem == zero {
         // no need for rounding
         return quot;
@@ -174,10 +178,7 @@ pub(crate) fn div_rounded(
             // remainder = |divisor| / 2 and quotient < 0
             // => add 1
             let rem_doubled = rem << 1;
-            let abs_divisor = abs(divisor);
-            if rem_doubled > abs_divisor
-                || rem_doubled == abs_divisor && quot < zero
-            {
+            if rem_doubled > divisor || rem_doubled == divisor && quot < zero {
                 return quot + one;
             }
         }
@@ -187,9 +188,8 @@ pub(crate) fn div_rounded(
             // remainder = |divisor| / 2 and quotient not even
             // => add 1
             let rem_doubled = rem << 1;
-            let abs_divisor = abs(divisor);
-            if rem_doubled > abs_divisor
-                || rem_doubled == abs_divisor && !quot.is_even()
+            if rem_doubled > divisor
+                || rem_doubled == divisor && !quot.is_even()
             {
                 return quot + one;
             }
@@ -200,10 +200,7 @@ pub(crate) fn div_rounded(
             // remainder = |divisor| / 2 and quotient >= 0
             // => add 1
             let rem_doubled = rem << 1;
-            let abs_divisor = abs(divisor);
-            if rem_doubled > abs_divisor
-                || rem_doubled == abs_divisor && quot >= zero
-            {
+            if rem_doubled > divisor || rem_doubled == divisor && quot >= zero {
                 return quot + one;
             }
         }
@@ -223,7 +220,7 @@ pub(crate) fn div_rounded(
 mod helper_tests {
     use super::*;
 
-    const TESTDATA: [(i128, i128, RoundingMode, i128); 33] = [
+    const TESTDATA: [(i128, i128, RoundingMode, i128); 34] = [
         (17, 5, RoundingMode::Round05Up, 3),
         (27, 5, RoundingMode::Round05Up, 6),
         (-17, 5, RoundingMode::Round05Up, -3),
@@ -248,6 +245,12 @@ mod helper_tests {
         (15, 4, RoundingMode::RoundHalfEven, 4),
         (-225, 50, RoundingMode::RoundHalfEven, -4),
         (-15, 4, RoundingMode::RoundHalfEven, -4),
+        (
+            u64::MAX as i128,
+            i64::MIN as i128 * 10,
+            RoundingMode::RoundHalfEven,
+            0,
+        ),
         (19, 2, RoundingMode::RoundHalfUp, 10),
         (10802, 4321, RoundingMode::RoundHalfUp, 2),
         (-19, 2, RoundingMode::RoundHalfUp, -10),
