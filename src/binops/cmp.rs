@@ -70,6 +70,16 @@ where
     pub fn eq_one(&self) -> bool {
         self.coeff == Self::ONE.coeff
     }
+
+    #[inline(always)]
+    pub fn is_negative(&self) -> bool {
+        self.coeff < 0
+    }
+
+    #[inline(always)]
+    pub fn is_positive(&self) -> bool {
+        self.coeff > 0
+    }
 }
 
 #[cfg(test)]
