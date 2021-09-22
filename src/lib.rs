@@ -21,6 +21,7 @@ use crate::prec_constraints::{PrecLimitCheck, True};
 
 mod binops;
 mod errors;
+mod format;
 mod from_decimal;
 mod from_float;
 mod from_int;
@@ -36,7 +37,7 @@ mod prec_constraints {
     impl True for PrecLimitCheck<true> {}
 }
 
-#[derive(Copy, Clone, Debug, Eq, Ord)]
+#[derive(Copy, Clone, Eq, Ord)]
 pub struct Decimal<const P: u8>
 where
     Decimal<P>: Sized,
