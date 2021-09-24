@@ -13,6 +13,7 @@
 #![feature(associated_type_bounds)]
 #![feature(int_roundings)]
 
+pub use binops::{div_rounded::DivRounded, mul_rounded::MulRounded};
 pub use errors::*;
 pub use rust_fixed_point_decimal_core::{ParseDecimalError, MAX_PREC};
 pub use rust_fixed_point_decimal_macros::Dec;

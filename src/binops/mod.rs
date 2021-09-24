@@ -10,6 +10,6 @@
 mod add_sub;
 mod cmp;
 mod div;
-mod div_rounded;
+pub mod div_rounded;
 mod mul;
-mod mul_rounded;
+pub mod mul_rounded;
