@@ -70,6 +70,30 @@ where
             },
         }
     }
+
+    /// Returns the integer part of `self`.
+    #[inline]
+    pub fn trunc(&self) -> Self {
+        if P == 0 {
+            *self
+        } else {
+            Self {
+                coeff: (self.coeff / ten_pow(P)) * ten_pow(P),
+            }
+        }
+    }
+
+    /// Returns the fractional part of `self`.
+    #[inline]
+    pub fn fract(&self) -> Self {
+        if P == 0 {
+            Self::ZERO
+        } else {
+            Self {
+                coeff: self.coeff % ten_pow(P),
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -157,5 +181,31 @@ mod tests {
     fn test_ceil_overflow() {
         let x = Decimal::<2>::new_raw((i128::MAX / 100) * 100 + 1);
         let _y = x.ceil();
+    }
+
+    #[test]
+    fn test_trunc() {
+        let x = Decimal::<0>::new_raw(12345);
+        let y = x.trunc();
+        assert_eq!(x.coeff, y.coeff);
+        let x = Decimal::<3>::new_raw(12345);
+        let y = x.trunc();
+        assert_eq!(y.coeff, 12000);
+        let x = Decimal::<7>::new_raw(12345);
+        let y = x.trunc();
+        assert_eq!(y.coeff, 0);
+    }
+
+    #[test]
+    fn test_fract() {
+        let x = Decimal::<0>::new_raw(12345);
+        let y = x.fract();
+        assert_eq!(y.coeff, 0);
+        let x = Decimal::<3>::new_raw(12345);
+        let y = x.fract();
+        assert_eq!(y.coeff, 345);
+        let x = Decimal::<7>::new_raw(12345);
+        let y = x.fract();
+        assert_eq!(y.coeff, 12345);
     }
 }
