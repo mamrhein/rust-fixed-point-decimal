@@ -32,6 +32,21 @@ where
     }
 }
 
+impl<const P: u8> Neg for &Decimal<P>
+where
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+{
+    type Output = <Decimal<P> as Neg>::Output;
+
+    /// Returns -self.
+    ///
+    /// Panics with 'attempt to negate with overflow' when called on
+    /// Decimal::<P>::MIN!
+    fn neg(self) -> Self::Output {
+        Self::Output { coeff: -self.coeff }
+    }
+}
+
 impl<const P: u8> Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
@@ -109,6 +124,9 @@ mod tests {
         assert_eq!(x.coeff, -y.coeff);
         let z = -y;
         assert_eq!(x.coeff, z.coeff);
+        let a = &x;
+        let b = -a;
+        assert_eq!(a.coeff, -b.coeff);
     }
 
     #[test]
