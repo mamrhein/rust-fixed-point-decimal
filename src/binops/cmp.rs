@@ -59,7 +59,7 @@ where
 
 impl<const P: u8> Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     #[inline(always)]
     pub fn eq_zero(&self) -> bool {

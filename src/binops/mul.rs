@@ -13,7 +13,7 @@ use num::{Integer, One};
 
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
-    Decimal,
+    Decimal, MAX_PREC,
 };
 
 // The trait One requires Mul<Self, Output = Self>. This is only satisfied for
@@ -35,7 +35,7 @@ impl One for Decimal<0> {
 impl<const P: u8> Decimal<P>
 where
     PrecLimitCheck<{ 0 < P }>: True,
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     #[inline(always)]
     pub fn one() -> Self {
@@ -73,9 +73,9 @@ pub const fn const_sum_u8(a: u8, b: u8) -> u8 {
 
 impl<const P: u8, const Q: u8> Mul<Decimal<Q>> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ (const_sum_u8(P, Q)) <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+    PrecLimitCheck<{ (const_sum_u8(P, Q)) <= MAX_PREC }>: True,
 {
     type Output = Decimal<{ const_sum_u8(P, Q) }>;
 
@@ -84,6 +84,8 @@ where
         Self::Output::new_raw(self.coeff * other.coeff)
     }
 }
+
+forward_ref_binop!(impl Mul, mul);
 
 #[cfg(test)]
 mod mul_decimal_tests {
@@ -125,13 +127,23 @@ mod mul_decimal_tests {
         let x = Decimal::<2>::new_raw(i128::MIN);
         let _y = x * Decimal::<2>::NEG_ONE;
     }
+
+    #[test]
+    fn test_mul_ref() {
+        let x = Decimal::<3>::new_raw(12345);
+        let y = Decimal::<1>::new_raw(12345);
+        let z = x * y;
+        assert_eq!(z.coeff, (&x * y).coeff);
+        assert_eq!(z.coeff, (x * &y).coeff);
+        assert_eq!(z.coeff, (&x * &y).coeff);
+    }
 }
 
 impl<T, const P: u8> Mul<T> for Decimal<P>
 where
     T: Integer,
     i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     type Output = Self;
 
@@ -151,7 +163,7 @@ macro_rules! impl_mul_decimal_for_int {
         $(
         impl<const P: u8> Mul<Decimal<P>> for $t
         where
-            PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
             type Output = Decimal<P>;
 

@@ -17,12 +17,12 @@ use rust_fixed_point_decimal_core::mul_pow_ten;
 
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
-    Decimal,
+    Decimal, MAX_PREC,
 };
 
 impl<const P: u8> Zero for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
     Decimal<P>: Add<Output = Decimal<P>>,
 {
     #[inline(always)]
@@ -65,9 +65,9 @@ pub const fn const_max_u8(a: u8, b: u8) -> u8 {
 
 impl<const P: u8, const Q: u8> Add<Decimal<Q>> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ const_max_u8(P, Q) <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+    PrecLimitCheck<{ const_max_u8(P, Q) <= MAX_PREC }>: True,
 {
     type Output = Decimal<{ const_max_u8(P, Q) }>;
 
@@ -87,11 +87,13 @@ where
     }
 }
 
+forward_ref_binop!(impl Add, add);
+
 impl<const P: u8, const Q: u8> Sub<Decimal<Q>> for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ const_max_u8(P, Q) <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+    PrecLimitCheck<{ const_max_u8(P, Q) <= MAX_PREC }>: True,
 {
     type Output = Decimal<{ const_max_u8(P, Q) }>;
 
@@ -110,6 +112,8 @@ where
         }
     }
 }
+
+forward_ref_binop!(impl Sub, sub);
 
 #[cfg(test)]
 mod add_sub_decimal_tests {
@@ -185,13 +189,33 @@ mod add_sub_decimal_tests {
         let x = Decimal::<4>::new_raw(i128::MIN + 99999);
         let _y = x - Decimal::<4>::TEN;
     }
+
+    #[test]
+    fn test_add_ref() {
+        let x = Decimal::<3>::new_raw(12345);
+        let y = Decimal::<1>::new_raw(12345);
+        let z = x + y;
+        assert_eq!(z.coeff, (&x + y).coeff);
+        assert_eq!(z.coeff, (x + &y).coeff);
+        assert_eq!(z.coeff, (&x + &y).coeff);
+    }
+
+    #[test]
+    fn test_sub_ref() {
+        let x = Decimal::<3>::new_raw(12345);
+        let y = Decimal::<1>::new_raw(12345);
+        let z = x - y;
+        assert_eq!(z.coeff, (&x - y).coeff);
+        assert_eq!(z.coeff, (x - &y).coeff);
+        assert_eq!(z.coeff, (&x - &y).coeff);
+    }
 }
 
 impl<T, const P: u8> Add<T> for Decimal<P>
 where
     T: Integer,
     i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     type Output = Self;
 
@@ -211,7 +235,7 @@ macro_rules! impl_add_decimal_for_int {
         $(
         impl<const P: u8> Add<Decimal<P>> for $t
         where
-            PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
             type Output = Decimal<P>;
 
@@ -230,7 +254,7 @@ impl<T, const P: u8> Sub<T> for Decimal<P>
 where
     T: Integer,
     i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     type Output = Self;
 
@@ -250,7 +274,7 @@ macro_rules! impl_sub_decimal_for_int {
         $(
         impl<const P: u8> Sub<Decimal<P>> for $t
         where
-            PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
             type Output = Decimal<P>;
 

@@ -58,6 +58,8 @@ where
     }
 }
 
+forward_ref_binop_rounded!(impl DivRounded, div_rounded);
+
 #[cfg(test)]
 mod div_rounded_decimal_tests {
     use rust_fixed_point_decimal_core::mul_pow_ten;
@@ -105,6 +107,19 @@ mod div_rounded_decimal_tests {
         let x = Decimal::<0>::new_raw(mul_pow_ten(17, 20));
         let y = Decimal::<9>::new_raw(2);
         let _z: Decimal<9> = x.div_rounded(y);
+    }
+
+    #[test]
+    fn test_div_rounded_ref() {
+        let x = Decimal::<3>::new_raw(12345);
+        let y = Decimal::<4>::new_raw(12345);
+        let z: Decimal<2> = x.div_rounded(y);
+        let a: Decimal<2> = DivRounded::div_rounded(&x, y);
+        assert_eq!(a.coeff, z.coeff);
+        let a: Decimal<2> = DivRounded::div_rounded(x, &y);
+        assert_eq!(a.coeff, z.coeff);
+        let a: Decimal<2> = DivRounded::div_rounded(&x, &y);
+        assert_eq!(a.coeff, z.coeff);
     }
 }
 

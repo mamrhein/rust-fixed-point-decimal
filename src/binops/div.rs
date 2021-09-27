@@ -43,6 +43,8 @@ where
     }
 }
 
+forward_ref_binop!(impl Div, div);
+
 #[cfg(test)]
 mod div_decimal_tests {
     use super::*;
@@ -96,6 +98,16 @@ mod div_decimal_tests {
         let x = Decimal::<0>::new_raw(mul_pow_ten(17, 20));
         let y = Decimal::<9>::new_raw(2);
         let _z = x / y;
+    }
+
+    #[test]
+    fn test_div_ref() {
+        let x = Decimal::<3>::new_raw(12345);
+        let y = Decimal::<1>::new_raw(12345);
+        let z = x / y;
+        assert_eq!(z.coeff, (&x / y).coeff);
+        assert_eq!(z.coeff, (x / &y).coeff);
+        assert_eq!(z.coeff, (&x / &y).coeff);
     }
 }
 

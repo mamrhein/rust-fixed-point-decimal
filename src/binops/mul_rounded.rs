@@ -14,7 +14,7 @@ use rust_fixed_point_decimal_core::ten_pow;
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
     rounding::div_rounded,
-    Decimal,
+    Decimal, MAX_PREC,
 };
 
 pub trait MulRounded<Rhs, Result = Self> {
@@ -25,10 +25,10 @@ pub trait MulRounded<Rhs, Result = Self> {
 impl<const P: u8, const Q: u8, const R: u8> MulRounded<Decimal<Q>, Decimal<R>>
     for Decimal<P>
 where
-    PrecLimitCheck<{ P <= crate::MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
     Decimal<P>: Mul<Decimal<Q>>,
-    PrecLimitCheck<{ R <= crate::MAX_PREC }>: True,
+    PrecLimitCheck<{ R <= MAX_PREC }>: True,
 {
     #[inline(always)]
     fn mul_rounded(self, other: Decimal<Q>) -> Decimal<R> {
@@ -49,6 +49,8 @@ where
         }
     }
 }
+
+forward_ref_binop_rounded!(impl MulRounded, mul_rounded);
 
 #[cfg(test)]
 mod mul_rounded_decimal_tests {
@@ -88,5 +90,18 @@ mod mul_rounded_decimal_tests {
         assert_eq!(z.coeff, 713664450);
         let z: Decimal<9> = y.mul_rounded(x);
         assert_eq!(z.coeff, 71366445000);
+    }
+
+    #[test]
+    fn test_mul_rounded_ref() {
+        let x = Decimal::<3>::new_raw(12345);
+        let y = Decimal::<1>::new_raw(12345);
+        let z: Decimal<2> = x.mul_rounded(y);
+        let a: Decimal<2> = MulRounded::mul_rounded(&x, y);
+        assert_eq!(a.coeff, z.coeff);
+        let a: Decimal<2> = MulRounded::mul_rounded(x, &y);
+        assert_eq!(a.coeff, z.coeff);
+        let a: Decimal<2> = MulRounded::mul_rounded(&x, &y);
+        assert_eq!(a.coeff, z.coeff);
     }
 }
