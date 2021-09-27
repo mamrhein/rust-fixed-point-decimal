@@ -188,10 +188,10 @@ mod tests {
         let x = Decimal::<0>::new_raw(12345);
         let y = x.trunc();
         assert_eq!(x.coeff, y.coeff);
-        let x = Decimal::<3>::new_raw(12345);
+        let x = Decimal::<3>::new_raw(98765);
         let y = x.trunc();
-        assert_eq!(y.coeff, 12000);
-        let x = Decimal::<7>::new_raw(12345);
+        assert_eq!(y.coeff, 98000);
+        let x = Decimal::<7>::new_raw(999999);
         let y = x.trunc();
         assert_eq!(y.coeff, 0);
     }
@@ -201,11 +201,11 @@ mod tests {
         let x = Decimal::<0>::new_raw(12345);
         let y = x.fract();
         assert_eq!(y.coeff, 0);
-        let x = Decimal::<3>::new_raw(12345);
+        let x = Decimal::<3>::new_raw(987654);
         let y = x.fract();
-        assert_eq!(y.coeff, 345);
-        let x = Decimal::<7>::new_raw(12345);
+        assert_eq!(y.coeff, 654);
+        let x = Decimal::<5>::new_raw(9999);
         let y = x.fract();
-        assert_eq!(y.coeff, 12345);
+        assert_eq!(y.coeff, 9999);
     }
 }
