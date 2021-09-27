@@ -9,6 +9,7 @@
 
 use std::ops::Neg;
 
+use num::Integer;
 use rust_fixed_point_decimal_core::ten_pow;
 
 use crate::{
@@ -52,7 +53,7 @@ where
         match P {
             0 => self.clone(),
             _ => Self {
-                coeff: self.coeff.div_floor(ten_pow(P)) * ten_pow(P),
+                coeff: self.coeff.div_floor(&ten_pow(P)) * ten_pow(P),
             },
         }
     }
@@ -66,7 +67,7 @@ where
         match P {
             0 => self.clone(),
             _ => Self {
-                coeff: self.coeff.div_ceil(ten_pow(P)) * ten_pow(P),
+                coeff: self.coeff.div_ceil(&ten_pow(P)) * ten_pow(P),
             },
         }
     }
