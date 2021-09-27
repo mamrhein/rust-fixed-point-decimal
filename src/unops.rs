@@ -152,6 +152,9 @@ mod tests {
         assert_eq!(-x.coeff, y.coeff);
         let z = y.abs();
         assert_eq!(y.coeff, z.coeff);
+        let a = &x;
+        let b = a.abs();
+        assert_eq!(-a.coeff, b.coeff);
     }
 
     #[test]
@@ -169,6 +172,9 @@ mod tests {
         assert_eq!(y.coeff, -1000000000);
         let z = y.floor();
         assert_eq!(y.coeff, z.coeff);
+        let a = &x;
+        let b = a.floor();
+        assert_eq!(b.coeff, y.coeff);
     }
 
     #[test]
@@ -193,6 +199,9 @@ mod tests {
         assert_eq!(y.coeff, 0);
         let z = y.ceil();
         assert_eq!(y.coeff, z.coeff);
+        let a = &x;
+        let b = a.ceil();
+        assert_eq!(b.coeff, y.coeff);
     }
 
     #[test]
@@ -213,6 +222,9 @@ mod tests {
         let x = Decimal::<7>::new_raw(999999);
         let y = x.trunc();
         assert_eq!(y.coeff, 0);
+        let a = &x;
+        let b = a.trunc();
+        assert_eq!(b.coeff, y.coeff);
     }
 
     #[test]
@@ -226,5 +238,8 @@ mod tests {
         let x = Decimal::<5>::new_raw(9999);
         let y = x.fract();
         assert_eq!(y.coeff, 9999);
+        let a = &x;
+        let b = a.fract();
+        assert_eq!(b.coeff, y.coeff);
     }
 }
