@@ -12,7 +12,7 @@ use std::{
     ops::{Add, Sub},
 };
 
-use num::{Integer, Zero};
+use num::Zero;
 use rust_fixed_point_decimal_core::mul_pow_ten;
 
 use crate::{
@@ -211,83 +211,158 @@ mod add_sub_decimal_tests {
     }
 }
 
-impl<T, const P: u8> Add<T> for Decimal<P>
-where
-    T: Integer,
-    i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-{
-    type Output = Self;
+// impl<T, const P: u8> Add<T> for Decimal<P>
+// where
+//     T: Integer,
+//     i128: std::convert::From<T>,
+//     PrecLimitCheck<{ P <= MAX_PREC }>: True,
+// {
+//     type Output = Self;
+//
+//     #[inline(always)]
+//     fn add(self, other: T) -> Self::Output {
+//         Self::Output {
+//             coeff: self.coeff + mul_pow_ten(other.into(), P),
+//         }
+//     }
+// }
+//
+// forward_ref_binop_int!(impl Add, add);
 
-    #[inline(always)]
-    fn add(self, other: T) -> Self::Output {
-        Self::Output {
-            coeff: self.coeff + mul_pow_ten(other.into(), P),
-        }
-    }
-}
-
-macro_rules! impl_add_decimal_for_int {
-    () => {
-        impl_add_decimal_for_int!(u8, i8, u16, i16, u32, i32, u64, i64, i128);
+macro_rules! impl_add_sub_decimal_and_int {
+    (impl $imp:ident, $method:ident) => {
+        impl_add_sub_decimal_and_int!(
+            impl $imp, $method, u8, i8, u16, i16, u32, i32, u64, i64, i128
+        );
     };
-    ($($t:ty),*) => {
+    (impl $imp:ident, $method:ident, $($t:ty),*) => {
         $(
-        impl<const P: u8> Add<Decimal<P>> for $t
+        impl<const P: u8> $imp<$t> for Decimal<P>
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
             type Output = Decimal<P>;
 
             #[inline(always)]
-            fn add(self, other: Decimal<P>) -> Self::Output {
-                other + self
+            fn $method(self, other: $t) -> Self::Output {
+                if P == 0 {
+                    Self::Output{
+                        coeff: $imp::$method(self.coeff, other as i128)
+                    }
+                } else {
+                    Self::Output{
+                        coeff: $imp::$method(self.coeff,
+                                             mul_pow_ten(other as i128, P))
+                    }
+                }
             }
         }
-        )*
-    }
-}
 
-impl_add_decimal_for_int!();
+        impl<'a, const P: u8> $imp<$t> for &'a Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t>,
+        {
+            type Output = <Decimal<P> as $imp<$t>>::Output;
 
-impl<T, const P: u8> Sub<T> for Decimal<P>
-where
-    T: Integer,
-    i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-{
-    type Output = Self;
-
-    #[inline(always)]
-    fn sub(self, other: T) -> Self::Output {
-        Self::Output {
-            coeff: self.coeff - mul_pow_ten(other.into(), P),
+            #[inline(always)]
+            fn $method(self, other: $t) -> Self::Output {
+                $imp::$method(*self, other)
+            }
         }
-    }
-}
 
-macro_rules! impl_sub_decimal_for_int {
-    () => {
-        impl_sub_decimal_for_int!(u8, i8, u16, i16, u32, i32, u64, i64, i128);
-    };
-    ($($t:ty),*) => {
-        $(
-        impl<const P: u8> Sub<Decimal<P>> for $t
+        impl<const P: u8> $imp<&$t> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t>,
+        {
+            type Output = <Decimal<P> as $imp<$t>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: &$t) -> Self::Output {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl<const P: u8> $imp<&$t> for &Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t>,
+        {
+            type Output = <Decimal<P> as $imp<$t>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: &$t) -> Self::Output {
+                $imp::$method(*self, *other)
+            }
+        }
+
+        impl<const P: u8> $imp<Decimal<P>> for $t
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
             type Output = Decimal<P>;
 
             #[inline(always)]
-            fn sub(self, other: Decimal<P>) -> Self::Output {
-                -other + self
+            fn $method(self, other: Decimal<P>) -> Self::Output {
+                if P == 0 {
+                    Self::Output{
+                        coeff: $imp::$method(self as i128, other.coeff)
+                    }
+                } else {
+                    Self::Output{
+                        coeff: $imp::$method(mul_pow_ten(self as i128, P),
+                                             other.coeff)
+                    }
+                }
+            }
+        }
+
+        impl<'a, const P: u8> $imp<Decimal<P>> for &'a $t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>>,
+        {
+            type Output = <$t as $imp<Decimal<P>>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: Decimal<P>) -> Self::Output {
+                $imp::$method(*self, other)
+            }
+        }
+
+        impl<const P: u8> $imp<&Decimal<P>> for $t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>>,
+        {
+            type Output = <$t as $imp<Decimal<P>>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: &Decimal<P>) -> Self::Output {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl<const P: u8> $imp<&Decimal<P>> for &$t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>>,
+        {
+            type Output = <$t as $imp<Decimal<P>>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: &Decimal<P>) -> Self::Output {
+                $imp::$method(*self, *other)
             }
         }
         )*
     }
 }
 
-impl_sub_decimal_for_int!();
+impl_add_sub_decimal_and_int!(impl Add, add);
+
+impl_add_sub_decimal_and_int!(impl Sub, sub);
 
 #[cfg(test)]
 mod add_sub_integer_tests {
@@ -304,9 +379,15 @@ mod add_sub_integer_tests {
                 let r = d + i;
                 assert_eq!(r.precision(), d.precision());
                 assert_eq!(r.coeff, i as i128 * ten_pow($p) + $coeff);
+                assert_eq!(r.coeff, (&d + i).coeff);
+                assert_eq!(r.coeff, (d + &i).coeff);
+                assert_eq!(r.coeff, (&d + &i).coeff);
                 let z = i + d;
                 assert_eq!(z.precision(), r.precision());
                 assert_eq!(z.coeff, r.coeff);
+                assert_eq!(z.coeff, (&i + d).coeff);
+                assert_eq!(z.coeff, (i + &d).coeff);
+                assert_eq!(z.coeff, (&i + &d).coeff);
             }
         };
     }
@@ -326,9 +407,15 @@ mod add_sub_integer_tests {
         let i = 12345_i128;
         let r = d + i;
         assert_eq!(r.coeff, i * 100 + 1);
+        assert_eq!(r.coeff, (&d + i).coeff);
+        assert_eq!(r.coeff, (d + &i).coeff);
+        assert_eq!(r.coeff, (&d + &i).coeff);
         let z = i + d;
         assert_eq!(z.precision(), r.precision());
         assert_eq!(z.coeff, r.coeff);
+        assert_eq!(z.coeff, (&i + d).coeff);
+        assert_eq!(z.coeff, (i + &d).coeff);
+        assert_eq!(z.coeff, (&i + &d).coeff);
     }
 
     macro_rules! gen_sub_integer_tests {
@@ -340,9 +427,15 @@ mod add_sub_integer_tests {
                 let r = d - i;
                 assert_eq!(r.precision(), d.precision());
                 assert_eq!(r.coeff, $coeff - i as i128 * ten_pow($p));
+                assert_eq!(r.coeff, (&d - i).coeff);
+                assert_eq!(r.coeff, (d - &i).coeff);
+                assert_eq!(r.coeff, (&d - &i).coeff);
                 let z = i - d;
                 assert_eq!(z.precision(), r.precision());
                 assert_eq!(z.coeff, i as i128 * ten_pow($p) - $coeff);
+                assert_eq!(z.coeff, (&i - d).coeff);
+                assert_eq!(z.coeff, (i - &d).coeff);
+                assert_eq!(z.coeff, (&i - &d).coeff);
             }
         };
     }
@@ -362,7 +455,13 @@ mod add_sub_integer_tests {
         let i = 12345_i128;
         let r = d - i;
         assert_eq!(r.coeff, -i * 100 + 501);
-        let r = i - d;
-        assert_eq!(r.coeff, i * 100 - 501);
+        assert_eq!(r.coeff, (&d - i).coeff);
+        assert_eq!(r.coeff, (d - &i).coeff);
+        assert_eq!(r.coeff, (&d - &i).coeff);
+        let z = i - d;
+        assert_eq!(z.coeff, i * 100 - 501);
+        assert_eq!(z.coeff, (&i - d).coeff);
+        assert_eq!(z.coeff, (i - &d).coeff);
+        assert_eq!(z.coeff, (&i - &d).coeff);
     }
 }

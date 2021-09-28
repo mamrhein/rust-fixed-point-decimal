@@ -7,9 +7,8 @@
 // $Source$
 // $Revision$
 
-// implements binary operators "&T op U", "T op &U", "&T op &U"
+// Implements binary operators "&T op U", "T op &U", "&T op &U"
 // based on "T op U" where T and U are Decimal<P> and Decimal<Q>
-
 macro_rules! forward_ref_binop {
     (impl $imp:ident, $method:ident) => {
         impl<'a, const P: u8, const Q: u8> $imp<Decimal<Q>> for &'a Decimal<P>
@@ -56,6 +55,7 @@ macro_rules! forward_ref_binop {
     };
 }
 
+// Same for ops giving rounded result.
 macro_rules! forward_ref_binop_rounded {
     (impl $imp:ident, $method:ident) => {
         impl<'a, const P: u8, const Q: u8, const R: u8>
