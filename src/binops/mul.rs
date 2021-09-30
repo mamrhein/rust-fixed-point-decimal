@@ -9,7 +9,7 @@
 
 use std::ops::Mul;
 
-use num::{Integer, One};
+use num::One;
 
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
@@ -139,44 +139,47 @@ mod mul_decimal_tests {
     }
 }
 
-impl<T, const P: u8> Mul<T> for Decimal<P>
-where
-    T: Integer,
-    i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-{
-    type Output = Self;
-
-    #[inline(always)]
-    fn mul(self, other: T) -> Self::Output {
-        Self::Output {
-            coeff: self.coeff * i128::from(other),
-        }
-    }
-}
-
-macro_rules! impl_mul_decimal_for_int {
-    () => {
-        impl_mul_decimal_for_int!(u8, i8, u16, i16, u32, i32, u64, i64, i128);
+macro_rules! impl_mul_decimal_and_int {
+    (impl $imp:ident, $method:ident) => {
+        impl_mul_decimal_and_int!(
+            impl $imp, $method, u8, i8, u16, i16, u32, i32, u64, i64, i128
+        );
     };
-    ($($t:ty),*) => {
+    (impl $imp:ident, $method:ident, $($t:ty),*) => {
         $(
-        impl<const P: u8> Mul<Decimal<P>> for $t
+        impl<const P: u8> $imp<$t> for Decimal<P>
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
             type Output = Decimal<P>;
 
             #[inline(always)]
-            fn mul(self, other: Decimal<P>) -> Self::Output {
-                other * self
+            fn $method(self, other: $t) -> Self::Output {
+                Self::Output{
+                    coeff: $imp::$method(self.coeff, other as i128)
+                }
+            }
+        }
+
+        impl<const P: u8> $imp<Decimal<P>> for $t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+        {
+            type Output = Decimal<P>;
+
+            #[inline(always)]
+            fn $method(self, other: Decimal<P>) -> Self::Output {
+                Self::Output{
+                    coeff: $imp::$method(self as i128, other.coeff)
+                }
             }
         }
         )*
     }
 }
 
-impl_mul_decimal_for_int!();
+impl_mul_decimal_and_int!(impl Mul, mul);
+forward_ref_binop_decimal_int!(impl Mul, mul);
 
 #[cfg(test)]
 #[allow(clippy::neg_multiply)]
@@ -192,9 +195,15 @@ mod mul_integer_tests {
                 let r = d * i;
                 assert_eq!(r.precision(), d.precision());
                 assert_eq!(r.coeff, i as i128 * $coeff);
+                assert_eq!(r.coeff, (&d * i).coeff);
+                assert_eq!(r.coeff, (d * &i).coeff);
+                assert_eq!(r.coeff, (&d * &i).coeff);
                 let z = i * d;
                 assert_eq!(z.precision(), r.precision());
                 assert_eq!(z.coeff, r.coeff);
+                assert_eq!(z.coeff, (&i * d).coeff);
+                assert_eq!(z.coeff, (i * &d).coeff);
+                assert_eq!(z.coeff, (&i * &d).coeff);
             }
         };
     }
@@ -216,8 +225,14 @@ mod mul_integer_tests {
         let r = d * i;
         assert_eq!(r.precision(), d.precision());
         assert_eq!(r.coeff, i * coeff);
+        assert_eq!(r.coeff, (&d * i).coeff);
+        assert_eq!(r.coeff, (d * &i).coeff);
+        assert_eq!(r.coeff, (&d * &i).coeff);
         let z = i * d;
         assert_eq!(z.precision(), r.precision());
         assert_eq!(z.coeff, r.coeff);
+        assert_eq!(z.coeff, (&i * d).coeff);
+        assert_eq!(z.coeff, (i * &d).coeff);
+        assert_eq!(z.coeff, (&i * &d).coeff);
     }
 }
