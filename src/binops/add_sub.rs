@@ -211,24 +211,6 @@ mod add_sub_decimal_tests {
     }
 }
 
-// impl<T, const P: u8> Add<T> for Decimal<P>
-// where
-//     T: Integer,
-//     i128: std::convert::From<T>,
-//     PrecLimitCheck<{ P <= MAX_PREC }>: True,
-// {
-//     type Output = Self;
-//
-//     #[inline(always)]
-//     fn add(self, other: T) -> Self::Output {
-//         Self::Output {
-//             coeff: self.coeff + mul_pow_ten(other.into(), P),
-//         }
-//     }
-// }
-//
-// forward_ref_binop_int!(impl Add, add);
-
 macro_rules! impl_add_sub_decimal_and_int {
     (impl $imp:ident, $method:ident) => {
         impl_add_sub_decimal_and_int!(
@@ -258,45 +240,6 @@ macro_rules! impl_add_sub_decimal_and_int {
             }
         }
 
-        impl<'a, const P: u8> $imp<$t> for &'a Decimal<P>
-        where
-            PrecLimitCheck<{ P <= MAX_PREC }>: True,
-            Decimal<P>: $imp<$t>,
-        {
-            type Output = <Decimal<P> as $imp<$t>>::Output;
-
-            #[inline(always)]
-            fn $method(self, other: $t) -> Self::Output {
-                $imp::$method(*self, other)
-            }
-        }
-
-        impl<const P: u8> $imp<&$t> for Decimal<P>
-        where
-            PrecLimitCheck<{ P <= MAX_PREC }>: True,
-            Decimal<P>: $imp<$t>,
-        {
-            type Output = <Decimal<P> as $imp<$t>>::Output;
-
-            #[inline(always)]
-            fn $method(self, other: &$t) -> Self::Output {
-                $imp::$method(self, *other)
-            }
-        }
-
-        impl<const P: u8> $imp<&$t> for &Decimal<P>
-        where
-            PrecLimitCheck<{ P <= MAX_PREC }>: True,
-            Decimal<P>: $imp<$t>,
-        {
-            type Output = <Decimal<P> as $imp<$t>>::Output;
-
-            #[inline(always)]
-            fn $method(self, other: &$t) -> Self::Output {
-                $imp::$method(*self, *other)
-            }
-        }
-
         impl<const P: u8> $imp<Decimal<P>> for $t
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
@@ -317,52 +260,15 @@ macro_rules! impl_add_sub_decimal_and_int {
                 }
             }
         }
-
-        impl<'a, const P: u8> $imp<Decimal<P>> for &'a $t
-        where
-            PrecLimitCheck<{ P <= MAX_PREC }>: True,
-            $t: $imp<Decimal<P>>,
-        {
-            type Output = <$t as $imp<Decimal<P>>>::Output;
-
-            #[inline(always)]
-            fn $method(self, other: Decimal<P>) -> Self::Output {
-                $imp::$method(*self, other)
-            }
-        }
-
-        impl<const P: u8> $imp<&Decimal<P>> for $t
-        where
-            PrecLimitCheck<{ P <= MAX_PREC }>: True,
-            $t: $imp<Decimal<P>>,
-        {
-            type Output = <$t as $imp<Decimal<P>>>::Output;
-
-            #[inline(always)]
-            fn $method(self, other: &Decimal<P>) -> Self::Output {
-                $imp::$method(self, *other)
-            }
-        }
-
-        impl<const P: u8> $imp<&Decimal<P>> for &$t
-        where
-            PrecLimitCheck<{ P <= MAX_PREC }>: True,
-            $t: $imp<Decimal<P>>,
-        {
-            type Output = <$t as $imp<Decimal<P>>>::Output;
-
-            #[inline(always)]
-            fn $method(self, other: &Decimal<P>) -> Self::Output {
-                $imp::$method(*self, *other)
-            }
-        }
         )*
     }
 }
 
 impl_add_sub_decimal_and_int!(impl Add, add);
+forward_ref_binop_decimal_int!(impl Add, add);
 
 impl_add_sub_decimal_and_int!(impl Sub, sub);
+forward_ref_binop_decimal_int!(impl Sub, sub);
 
 #[cfg(test)]
 mod add_sub_integer_tests {

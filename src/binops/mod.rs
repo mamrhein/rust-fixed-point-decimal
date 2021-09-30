@@ -102,6 +102,97 @@ macro_rules! forward_ref_binop_rounded {
     };
 }
 
+// Implements binary operators "&T op U", "T op &U", "&T op &U"
+// based on "T op U" where T = Decimal<P> and U is a native int
+macro_rules! forward_ref_binop_decimal_int {
+    (impl $imp:ident, $method:ident) => {
+        forward_ref_binop_decimal_int!(
+            impl $imp, $method, u8, i8, u16, i16, u32, i32, u64, i64, i128
+        );
+    };
+    (impl $imp:ident, $method:ident, $($t:ty),*) => {
+        $(
+        impl<'a, const P: u8> $imp<$t> for &'a Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t>,
+        {
+            type Output = <Decimal<P> as $imp<$t>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: $t) -> Self::Output {
+                $imp::$method(*self, other)
+            }
+        }
+
+        impl<const P: u8> $imp<&$t> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t>,
+        {
+            type Output = <Decimal<P> as $imp<$t>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: &$t) -> Self::Output {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl<const P: u8> $imp<&$t> for &Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t>,
+        {
+            type Output = <Decimal<P> as $imp<$t>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: &$t) -> Self::Output {
+                $imp::$method(*self, *other)
+            }
+        }
+
+        impl<'a, const P: u8> $imp<Decimal<P>> for &'a $t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>>,
+        {
+            type Output = <$t as $imp<Decimal<P>>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: Decimal<P>) -> Self::Output {
+                $imp::$method(*self, other)
+            }
+        }
+
+        impl<const P: u8> $imp<&Decimal<P>> for $t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>>,
+        {
+            type Output = <$t as $imp<Decimal<P>>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: &Decimal<P>) -> Self::Output {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl<const P: u8> $imp<&Decimal<P>> for &$t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>>,
+        {
+            type Output = <$t as $imp<Decimal<P>>>::Output;
+
+            #[inline(always)]
+            fn $method(self, other: &Decimal<P>) -> Self::Output {
+                $imp::$method(*self, *other)
+            }
+        }
+        )*
+    }
+}
+
 mod add_sub;
 mod cmp;
 mod div;
