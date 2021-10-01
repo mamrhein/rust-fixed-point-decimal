@@ -9,7 +9,7 @@
 
 use std::ops::Div;
 
-use num::{integer::div_mod_floor, Integer};
+use num::{integer::div_mod_floor, One, Zero};
 use rust_fixed_point_decimal_core::mul_pow_ten;
 
 use crate::{
@@ -111,39 +111,39 @@ mod div_decimal_tests {
     }
 }
 
-impl<T, const P: u8> Div<T> for Decimal<P>
-where
-    T: Integer,
-    i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-{
-    type Output = Decimal<9>;
-
-    fn div(self, other: T) -> Self::Output {
-        if other.is_zero() {
-            panic!("{}", DecimalError::DivisionByZero);
-        }
-        if other.is_one() {
-            return Self::Output {
-                coeff: mul_pow_ten(self.coeff, MAX_PREC - P),
-            };
-        }
-        let r = MAX_PREC - P;
-        let (quot, rem) =
-            div_mod_floor(mul_pow_ten(self.coeff, r), other.into());
-        if rem != 0 {
-            panic!("{}", DecimalError::PrecLimitExceeded);
-        }
-        Self::Output { coeff: quot }
-    }
-}
-
-macro_rules! impl_div_decimal_for_int {
-    () => {
-        impl_div_decimal_for_int!(u8, i8, u16, i16, u32, i32, u64, i64, i128);
+macro_rules! impl_div_decimal_and_int {
+    (impl $imp:ident, $method:ident) => {
+        impl_div_decimal_and_int!(
+            impl $imp, $method, u8, i8, u16, i16, u32, i32, u64, i64, i128
+        );
     };
-    ($($t:ty),*) => {
+    (impl $imp:ident, $method:ident, $($t:ty),*) => {
         $(
+        impl<const P: u8> $imp<$t> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+        {
+            type Output = Decimal<9>;
+
+            fn div(self, other: $t) -> Self::Output {
+                if other.is_zero() {
+                    panic!("{}", DecimalError::DivisionByZero);
+                }
+                if other.is_one() {
+                    return Self::Output {
+                        coeff: mul_pow_ten(self.coeff, MAX_PREC - P),
+                    };
+                }
+                let r = MAX_PREC - P;
+                let (quot, rem) =
+                    div_mod_floor(mul_pow_ten(self.coeff, r), other as i128);
+                if rem != 0 {
+                    panic!("{}", DecimalError::PrecLimitExceeded);
+                }
+                Self::Output { coeff: quot }
+            }
+        }
+
         impl<const P: u8> Div<Decimal<P>> for $t
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
@@ -156,12 +156,12 @@ macro_rules! impl_div_decimal_for_int {
                 }
                 if other.eq_one() {
                     return Self::Output {
-                        coeff: mul_pow_ten(self.into(), MAX_PREC),
+                        coeff: mul_pow_ten(self as i128, MAX_PREC),
                     };
                 }
                 let r = MAX_PREC + P;
                 let (quot, rem) =
-                    div_mod_floor(mul_pow_ten(self.into(), r), other.coeff);
+                    div_mod_floor(mul_pow_ten(self as i128, r), other.coeff);
                 if rem != 0 {
                     panic!("{}", DecimalError::PrecLimitExceeded);
                 }
@@ -172,7 +172,8 @@ macro_rules! impl_div_decimal_for_int {
     }
 }
 
-impl_div_decimal_for_int!();
+impl_div_decimal_and_int!(impl Div, div);
+forward_ref_binop_decimal_int!(impl Div, div);
 
 #[cfg(test)]
 #[allow(clippy::neg_multiply)]
@@ -194,12 +195,18 @@ mod div_integer_tests {
                     r.coeff,
                     $coeff * ten_pow(MAX_PREC - $p) / i as i128
                 );
+                assert_eq!(r.coeff, (&d / i).coeff);
+                assert_eq!(r.coeff, (d / &i).coeff);
+                assert_eq!(r.coeff, (&d / &i).coeff);
                 let z = i / d;
                 assert_eq!(z.precision(), MAX_PREC);
                 assert_eq!(
                     z.coeff,
                     i as i128 * ten_pow(MAX_PREC + $p) / $coeff
                 );
+                assert_eq!(z.coeff, (&i / d).coeff);
+                assert_eq!(z.coeff, (i / &d).coeff);
+                assert_eq!(z.coeff, (&i / &d).coeff);
             }
         };
     }
@@ -221,9 +228,15 @@ mod div_integer_tests {
         let r = d / i;
         assert_eq!(r.precision(), MAX_PREC);
         assert_eq!(r.coeff, coeff * 100000 / i);
+        assert_eq!(r.coeff, (&d / i).coeff);
+        assert_eq!(r.coeff, (d / &i).coeff);
+        assert_eq!(r.coeff, (&d / &i).coeff);
         let z = i / d;
         assert_eq!(z.precision(), MAX_PREC);
         assert_eq!(z.coeff, i * ten_pow(13) / coeff);
+        assert_eq!(z.coeff, (&i / d).coeff);
+        assert_eq!(z.coeff, (i / &d).coeff);
+        assert_eq!(z.coeff, (&i / &d).coeff);
     }
 
     #[test]
