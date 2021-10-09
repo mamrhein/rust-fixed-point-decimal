@@ -39,6 +39,7 @@ mod prec_constraints {
 }
 
 #[derive(Copy, Clone, Eq, Ord)]
+#[repr(transparent)]
 pub struct Decimal<const P: u8>
 where
     Decimal<P>: Sized,
