@@ -9,7 +9,7 @@
 
 use std::{cmp::Ordering, ops::Div};
 
-use num::Integer;
+use num::Zero;
 use rust_fixed_point_decimal_core::ten_pow;
 
 use crate::{
@@ -123,39 +123,141 @@ mod div_rounded_decimal_tests {
     }
 }
 
-impl<T, const P: u8, const R: u8> DivRounded<T, Decimal<R>> for Decimal<P>
-where
-    T: Integer,
-    i128: std::convert::From<T>,
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-    PrecLimitCheck<{ R <= MAX_PREC }>: True,
-{
-    #[inline(always)]
-    fn div_rounded(self, other: T) -> Decimal<R> {
-        if other.is_zero() {
-            panic!("{}", DecimalError::DivisionByZero);
+macro_rules! impl_div_rounded_decimal_and_int {
+    (impl $imp:ident, $method:ident) => {
+        impl_div_rounded_decimal_and_int!(
+            impl $imp, $method, u8, i8, u16, i16, u32, i32, u64, i64, i128
+        );
+    };
+    (impl $imp:ident, $method:ident, $($t:ty),*) => {
+        $(
+        impl<const P: u8, const R: u8> $imp<$t, Decimal<R>> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+        {
+            fn $method(self, other: $t) -> Decimal<R> {
+                if other.is_zero() {
+                    panic!("{}", DecimalError::DivisionByZero);
+                }
+                match P.cmp(&R) {
+                    Ordering::Equal => Decimal::<R> {
+                        coeff: div_rounded(self.coeff, other as i128, None),
+                    },
+                    Ordering::Less => Decimal::<R> {
+                        coeff: div_rounded(
+                            self.coeff * ten_pow(R - P),
+                            other as i128,
+                            None,
+                        ),
+                    },
+                    Ordering::Greater => Decimal::<R> {
+                        coeff: div_rounded(
+                            self.coeff,
+                            other as i128 * ten_pow(P - R),
+                            None,
+                        ),
+                    },
+                }
+            }
         }
-        match P.cmp(&R) {
-            Ordering::Equal => Decimal::<R> {
-                coeff: div_rounded(self.coeff, other.into(), None),
-            },
-            Ordering::Less => Decimal::<R> {
-                coeff: div_rounded(
-                    self.coeff * ten_pow(R - P),
-                    other.into(),
-                    None,
-                ),
-            },
-            Ordering::Greater => Decimal::<R> {
-                coeff: div_rounded(
-                    self.coeff,
-                    i128::from(other) * ten_pow(P - R),
-                    None,
-                ),
-            },
+
+        impl<'a, const P: u8, const R: u8> $imp<$t, Decimal<R>>
+        for &'a Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t, Decimal<R>>,
+        {
+            #[inline(always)]
+            fn $method(self, other: $t) -> Decimal<R> {
+                $imp::$method(*self, other)
+            }
         }
+
+        impl<const P: u8, const R: u8> $imp<&$t, Decimal<R>> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t, Decimal<R>>,
+        {
+            #[inline(always)]
+            fn $method(self, other: &$t) -> Decimal<R> {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl<const P: u8, const R: u8> $imp<&$t, Decimal<R>> for &Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+            Decimal<P>: $imp<$t, Decimal<R>>,
+        {
+            #[inline(always)]
+            fn $method(self, other: &$t) -> Decimal<R> {
+                $imp::$method(*self, *other)
+            }
+        }
+
+        impl<const P: u8, const R: u8> $imp<Decimal<P>, Decimal<R>> for $t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+        {
+            fn $method(self, other: Decimal<P>) -> Decimal::<R> {
+                if other.eq_zero() {
+                    panic!("{}", DecimalError::DivisionByZero);
+                }
+                Decimal::<R> {
+                    coeff: div_rounded(
+                        self as i128 * ten_pow(P + R),
+                        other.coeff,
+                        None,
+                    ),
+                }
+            }
+        }
+
+        impl<'a, const P: u8, const R: u8> $imp<Decimal<P>, Decimal<R>> for &'a $t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>, Decimal<R>>,
+        {
+            #[inline(always)]
+            fn $method(self, other: Decimal<P>) -> Decimal<R> {
+                $imp::$method(*self, other)
+            }
+        }
+
+        impl<const P: u8, const R: u8> $imp<&Decimal<P>, Decimal<R>> for $t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>, Decimal<R>>,
+        {
+            #[inline(always)]
+            fn $method(self, other: &Decimal<P>) -> Decimal<R> {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl<const P: u8, const R: u8> $imp<&Decimal<P>, Decimal<R>> for &$t
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ R <= MAX_PREC }>: True,
+            $t: $imp<Decimal<P>, Decimal<R>>,
+        {
+            #[inline(always)]
+            fn $method(self, other: &Decimal<P>) -> Decimal<R> {
+                $imp::$method(*self, *other)
+            }
+        }
+        )*
     }
 }
+
+impl_div_rounded_decimal_and_int!(impl DivRounded, div_rounded);
 
 #[cfg(test)]
 #[allow(clippy::neg_multiply)]
@@ -170,6 +272,12 @@ mod div_rounded_decimal_by_int_tests {
                 let d = Decimal::<$p>::new_raw($coeff);
                 let i = $i;
                 let r: Decimal<$r> = d.div_rounded(i);
+                assert_eq!(r.coeff, $res_coeff);
+                let r: Decimal<$r> = (&d).div_rounded(i);
+                assert_eq!(r.coeff, $res_coeff);
+                let r: Decimal<$r> = d.div_rounded(&i);
+                assert_eq!(r.coeff, $res_coeff);
+                let r: Decimal<$r> = (&d).div_rounded(&i);
                 assert_eq!(r.coeff, $res_coeff);
             }
         };
@@ -209,43 +317,6 @@ mod div_rounded_decimal_by_int_tests {
     );
 }
 
-macro_rules! impl_div_rounded_decimal_for_int {
-    () => {
-        impl_div_rounded_decimal_for_int!(
-            u8, i8, u16, i16, u32, i32, u64, i64, i128
-        );
-    };
-    ($($t:ty),*) => {
-        $(
-        impl<const Q: u8, const R: u8> DivRounded<Decimal<Q>, Decimal<R>> for $t
-        where
-            PrecLimitCheck<{ Q <= MAX_PREC }>: True,
-            PrecLimitCheck<{ R <= MAX_PREC }>: True,
-        {
-            fn div_rounded(self, other: Decimal<Q>) -> Decimal<R> {
-                if other.eq_zero() {
-                    panic!("{}", DecimalError::DivisionByZero);
-                }
-                if Q == 0 && R == 0 {
-                    Decimal::<R> {
-                        coeff: div_rounded(self.into(), other.coeff, None)
-                    }
-                }
-                else {
-                    Decimal::<R> {
-                        coeff: div_rounded(i128::from(self) * ten_pow(R + Q),
-                                           other.coeff,
-                                           None)
-                    }
-                }
-            }
-        }
-        )*
-    }
-}
-
-impl_div_rounded_decimal_for_int!();
-
 #[cfg(test)]
 #[allow(clippy::neg_multiply)]
 mod div_rounded_int_by_decimal_tests {
@@ -259,6 +330,12 @@ mod div_rounded_int_by_decimal_tests {
                 let d = Decimal::<$p>::new_raw($coeff);
                 let i = $i;
                 let r: Decimal<$r> = i.div_rounded(d);
+                assert_eq!(r.coeff, $res_coeff);
+                let r: Decimal<$r> = (&i).div_rounded(d);
+                assert_eq!(r.coeff, $res_coeff);
+                let r: Decimal<$r> = i.div_rounded(&d);
+                assert_eq!(r.coeff, $res_coeff);
+                let r: Decimal<$r> = (&i).div_rounded(&d);
                 assert_eq!(r.coeff, $res_coeff);
             }
         };
