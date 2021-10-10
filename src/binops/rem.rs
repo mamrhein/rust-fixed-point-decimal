@@ -13,7 +13,7 @@ use std::{
 };
 
 use num::Zero;
-use rust_fixed_point_decimal_core::{mul_pow_ten, ten_pow};
+use rust_fixed_point_decimal_core::mul_pow_ten;
 
 use crate::{
     binops::const_max_u8,
@@ -36,20 +36,13 @@ where
         }
         match P.cmp(&Q) {
             Ordering::Equal => Self::Output {
-                coeff: self.coeff - other.coeff * (self.coeff / other.coeff),
+                coeff: self.coeff % other.coeff,
             },
             Ordering::Greater => Self::Output {
-                coeff: self.coeff
-                    - mul_pow_ten(
-                        other.coeff
-                            * (self.coeff / (other.coeff * ten_pow(P - Q))),
-                        P - Q,
-                    ),
+                coeff: self.coeff % mul_pow_ten(other.coeff, P - Q),
             },
             Ordering::Less => Self::Output {
-                coeff: mul_pow_ten(self.coeff, Q - P)
-                    - other.coeff
-                        * ((self.coeff * ten_pow(Q - P)) / other.coeff),
+                coeff: mul_pow_ten(self.coeff, Q - P) % other.coeff,
             },
         }
     }
@@ -123,16 +116,10 @@ macro_rules! impl_rem_decimal_and_int {
                     panic!("{}", DecimalError::DivisionByZero);
                 }
                 if P == 0 {
-                    Self::Output {
-                        coeff: self.coeff
-                            - other as i128 * (self.coeff / other as i128),
-                    }
+                    Self::Output { coeff: self.coeff % other as i128 }
                 } else {
                     Self::Output {
-                        coeff: self.coeff
-                            - mul_pow_ten(other as i128
-                                * (self.coeff / (other as i128 * ten_pow(P))),
-                                P),
+                        coeff: self.coeff % mul_pow_ten(other as i128, P)
                     }
                 }
             }
@@ -149,15 +136,10 @@ macro_rules! impl_rem_decimal_and_int {
                     panic!("{}", DecimalError::DivisionByZero);
                 }
                 if P == 0 {
-                    Self::Output {
-                        coeff: self as i128
-                            - other.coeff * (self as i128 / other.coeff),
-                    }
+                    Self::Output { coeff: self as i128 % other.coeff }
                 } else {
                     Self::Output {
-                        coeff: mul_pow_ten(self as i128, P)
-                            - other.coeff
-                                * ((self as i128 * ten_pow(P)) / other.coeff)
+                        coeff: mul_pow_ten(self as i128, P) % other.coeff
                     }
                 }
             }
@@ -182,15 +164,16 @@ mod rem_integer_tests {
             fn $func() {
                 let d = Decimal::<$p>::new_raw($coeff);
                 let i: $t = 127;
+                let c = mul_pow_ten(i as i128, $p);
                 let r = d % i;
                 assert_eq!(r.precision(), $p);
-                assert_eq!(r.coeff, $coeff % mul_pow_ten(i as i128, $p));
+                assert_eq!(r.coeff, $coeff - c * ($coeff / c));
                 assert_eq!(r.coeff, (&d % i).coeff);
                 assert_eq!(r.coeff, (d % &i).coeff);
                 assert_eq!(r.coeff, (&d % &i).coeff);
                 let z = i % d;
                 assert_eq!(z.precision(), $p);
-                assert_eq!(z.coeff, mul_pow_ten(i as i128, $p) % $coeff);
+                assert_eq!(z.coeff, c - $coeff * (c / $coeff));
                 assert_eq!(z.coeff, (&i % d).coeff);
                 assert_eq!(z.coeff, (i % &d).coeff);
                 assert_eq!(z.coeff, (&i % &d).coeff);
