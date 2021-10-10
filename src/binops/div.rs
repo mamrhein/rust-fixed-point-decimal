@@ -112,14 +112,12 @@ mod div_decimal_tests {
 }
 
 macro_rules! impl_div_decimal_and_int {
-    (impl $imp:ident, $method:ident) => {
-        impl_div_decimal_and_int!(
-            impl $imp, $method, u8, i8, u16, i16, u32, i32, u64, i64, i128
-        );
+    () => {
+        impl_div_decimal_and_int!(u8, i8, u16, i16, u32, i32, u64, i64, i128);
     };
-    (impl $imp:ident, $method:ident, $($t:ty),*) => {
+    ($($t:ty),*) => {
         $(
-        impl<const P: u8> $imp<$t> for Decimal<P>
+        impl<const P: u8> Div<$t> for Decimal<P>
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
@@ -172,7 +170,7 @@ macro_rules! impl_div_decimal_and_int {
     }
 }
 
-impl_div_decimal_and_int!(impl Div, div);
+impl_div_decimal_and_int!();
 forward_ref_binop_decimal_int!(impl Div, div);
 
 #[cfg(test)]

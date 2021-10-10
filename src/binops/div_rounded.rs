@@ -124,19 +124,19 @@ mod div_rounded_decimal_tests {
 }
 
 macro_rules! impl_div_rounded_decimal_and_int {
-    (impl $imp:ident, $method:ident) => {
+    () => {
         impl_div_rounded_decimal_and_int!(
-            impl $imp, $method, u8, i8, u16, i16, u32, i32, u64, i64, i128
+            u8, i8, u16, i16, u32, i32, u64, i64, i128
         );
     };
-    (impl $imp:ident, $method:ident, $($t:ty),*) => {
+    ($($t:ty),*) => {
         $(
-        impl<const P: u8, const R: u8> $imp<$t, Decimal<R>> for Decimal<P>
+        impl<const P: u8, const R: u8> DivRounded<$t, Decimal<R>> for Decimal<P>
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
             PrecLimitCheck<{ R <= MAX_PREC }>: True,
         {
-            fn $method(self, other: $t) -> Decimal<R> {
+            fn div_rounded(self, other: $t) -> Decimal<R> {
                 if other.is_zero() {
                     panic!("{}", DecimalError::DivisionByZero);
                 }
@@ -162,49 +162,52 @@ macro_rules! impl_div_rounded_decimal_and_int {
             }
         }
 
-        impl<'a, const P: u8, const R: u8> $imp<$t, Decimal<R>>
+        impl<'a, const P: u8, const R: u8> DivRounded<$t, Decimal<R>>
         for &'a Decimal<P>
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
             PrecLimitCheck<{ R <= MAX_PREC }>: True,
-            Decimal<P>: $imp<$t, Decimal<R>>,
+            Decimal<P>: DivRounded<$t, Decimal<R>>,
         {
             #[inline(always)]
-            fn $method(self, other: $t) -> Decimal<R> {
-                $imp::$method(*self, other)
+            fn div_rounded(self, other: $t) -> Decimal<R> {
+                DivRounded::div_rounded(*self, other)
             }
         }
 
-        impl<const P: u8, const R: u8> $imp<&$t, Decimal<R>> for Decimal<P>
+        impl<const P: u8, const R: u8> DivRounded<&$t, Decimal<R>>
+        for Decimal<P>
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
             PrecLimitCheck<{ R <= MAX_PREC }>: True,
-            Decimal<P>: $imp<$t, Decimal<R>>,
+            Decimal<P>: DivRounded<$t, Decimal<R>>,
         {
             #[inline(always)]
-            fn $method(self, other: &$t) -> Decimal<R> {
-                $imp::$method(self, *other)
+            fn div_rounded(self, other: &$t) -> Decimal<R> {
+                DivRounded::div_rounded(self, *other)
             }
         }
 
-        impl<const P: u8, const R: u8> $imp<&$t, Decimal<R>> for &Decimal<P>
+        impl<const P: u8, const R: u8> DivRounded<&$t, Decimal<R>>
+        for &Decimal<P>
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
             PrecLimitCheck<{ R <= MAX_PREC }>: True,
-            Decimal<P>: $imp<$t, Decimal<R>>,
+            Decimal<P>: DivRounded<$t, Decimal<R>>,
         {
             #[inline(always)]
-            fn $method(self, other: &$t) -> Decimal<R> {
-                $imp::$method(*self, *other)
+            fn div_rounded(self, other: &$t) -> Decimal<R> {
+                DivRounded::div_rounded(*self, *other)
             }
         }
 
-        impl<const P: u8, const R: u8> $imp<Decimal<P>, Decimal<R>> for $t
+        impl<const P: u8, const R: u8> DivRounded<Decimal<P>, Decimal<R>>
+        for $t
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
             PrecLimitCheck<{ R <= MAX_PREC }>: True,
         {
-            fn $method(self, other: Decimal<P>) -> Decimal::<R> {
+            fn div_rounded(self, other: Decimal<P>) -> Decimal::<R> {
                 if other.eq_zero() {
                     panic!("{}", DecimalError::DivisionByZero);
                 }
@@ -218,46 +221,49 @@ macro_rules! impl_div_rounded_decimal_and_int {
             }
         }
 
-        impl<'a, const P: u8, const R: u8> $imp<Decimal<P>, Decimal<R>> for &'a $t
+        impl<'a, const P: u8, const R: u8> DivRounded<Decimal<P>, Decimal<R>>
+        for &'a $t
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
             PrecLimitCheck<{ R <= MAX_PREC }>: True,
-            $t: $imp<Decimal<P>, Decimal<R>>,
+            $t: DivRounded<Decimal<P>, Decimal<R>>,
         {
             #[inline(always)]
-            fn $method(self, other: Decimal<P>) -> Decimal<R> {
-                $imp::$method(*self, other)
+            fn div_rounded(self, other: Decimal<P>) -> Decimal<R> {
+                DivRounded::div_rounded(*self, other)
             }
         }
 
-        impl<const P: u8, const R: u8> $imp<&Decimal<P>, Decimal<R>> for $t
+        impl<const P: u8, const R: u8> DivRounded<&Decimal<P>, Decimal<R>>
+        for $t
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
             PrecLimitCheck<{ R <= MAX_PREC }>: True,
-            $t: $imp<Decimal<P>, Decimal<R>>,
+            $t: DivRounded<Decimal<P>, Decimal<R>>,
         {
             #[inline(always)]
-            fn $method(self, other: &Decimal<P>) -> Decimal<R> {
-                $imp::$method(self, *other)
+            fn div_rounded(self, other: &Decimal<P>) -> Decimal<R> {
+                DivRounded::div_rounded(self, *other)
             }
         }
 
-        impl<const P: u8, const R: u8> $imp<&Decimal<P>, Decimal<R>> for &$t
+        impl<const P: u8, const R: u8> DivRounded<&Decimal<P>, Decimal<R>>
+        for &$t
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
             PrecLimitCheck<{ R <= MAX_PREC }>: True,
-            $t: $imp<Decimal<P>, Decimal<R>>,
+            $t: DivRounded<Decimal<P>, Decimal<R>>,
         {
             #[inline(always)]
-            fn $method(self, other: &Decimal<P>) -> Decimal<R> {
-                $imp::$method(*self, *other)
+            fn div_rounded(self, other: &Decimal<P>) -> Decimal<R> {
+                DivRounded::div_rounded(*self, *other)
             }
         }
         )*
     }
 }
 
-impl_div_rounded_decimal_and_int!(impl DivRounded, div_rounded);
+impl_div_rounded_decimal_and_int!();
 
 #[cfg(test)]
 #[allow(clippy::neg_multiply)]

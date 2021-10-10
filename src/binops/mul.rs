@@ -140,37 +140,35 @@ mod mul_decimal_tests {
 }
 
 macro_rules! impl_mul_decimal_and_int {
-    (impl $imp:ident, $method:ident) => {
-        impl_mul_decimal_and_int!(
-            impl $imp, $method, u8, i8, u16, i16, u32, i32, u64, i64, i128
-        );
+    () => {
+        impl_mul_decimal_and_int!(u8, i8, u16, i16, u32, i32, u64, i64, i128);
     };
-    (impl $imp:ident, $method:ident, $($t:ty),*) => {
+    ($($t:ty),*) => {
         $(
-        impl<const P: u8> $imp<$t> for Decimal<P>
+        impl<const P: u8> Mul<$t> for Decimal<P>
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
             type Output = Decimal<P>;
 
             #[inline(always)]
-            fn $method(self, other: $t) -> Self::Output {
+            fn mul(self, other: $t) -> Self::Output {
                 Self::Output{
-                    coeff: $imp::$method(self.coeff, other as i128)
+                    coeff: self.coeff * other as i128
                 }
             }
         }
 
-        impl<const P: u8> $imp<Decimal<P>> for $t
+        impl<const P: u8> Mul<Decimal<P>> for $t
         where
             PrecLimitCheck<{ P <= MAX_PREC }>: True,
         {
             type Output = Decimal<P>;
 
             #[inline(always)]
-            fn $method(self, other: Decimal<P>) -> Self::Output {
+            fn mul(self, other: Decimal<P>) -> Self::Output {
                 Self::Output{
-                    coeff: $imp::$method(self as i128, other.coeff)
+                    coeff: self as i128 * other.coeff
                 }
             }
         }
@@ -178,7 +176,7 @@ macro_rules! impl_mul_decimal_and_int {
     }
 }
 
-impl_mul_decimal_and_int!(impl Mul, mul);
+impl_mul_decimal_and_int!();
 forward_ref_binop_decimal_int!(impl Mul, mul);
 
 #[cfg(test)]
