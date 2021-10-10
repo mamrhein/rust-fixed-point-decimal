@@ -16,6 +16,7 @@ use num::Zero;
 use rust_fixed_point_decimal_core::mul_pow_ten;
 
 use crate::{
+    binops::const_max_u8,
     prec_constraints::{PrecLimitCheck, True},
     Decimal, MAX_PREC,
 };
@@ -52,14 +53,6 @@ mod zero_tests {
         assert!(Decimal::<7>::is_zero(&Decimal::<7>::zero()));
         assert!(Decimal::<8>::is_zero(&Decimal::<8>::zero()));
         assert!(Decimal::<9>::is_zero(&Decimal::<9>::zero()));
-    }
-}
-
-pub const fn const_max_u8(a: u8, b: u8) -> u8 {
-    if a > b {
-        a
-    } else {
-        b
     }
 }
 

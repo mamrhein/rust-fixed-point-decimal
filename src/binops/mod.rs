@@ -193,9 +193,18 @@ macro_rules! forward_ref_binop_decimal_int {
     }
 }
 
+pub const fn const_max_u8(a: u8, b: u8) -> u8 {
+    if a > b {
+        a
+    } else {
+        b
+    }
+}
+
 mod add_sub;
 mod cmp;
 mod div;
 pub mod div_rounded;
 mod mul;
 pub mod mul_rounded;
+mod rem;
