@@ -56,56 +56,44 @@ mod zero_tests {
     }
 }
 
-impl<const P: u8, const Q: u8> Add<Decimal<Q>> for Decimal<P>
-where
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
-    PrecLimitCheck<{ const_max_u8(P, Q) <= MAX_PREC }>: True,
-{
-    type Output = Decimal<{ const_max_u8(P, Q) }>;
+macro_rules! impl_add_sub_decimal {
+    (impl $imp:ident, $method:ident) => {
+        impl<const P: u8, const Q: u8> $imp<Decimal<Q>> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+            PrecLimitCheck<{ const_max_u8(P, Q) <= MAX_PREC }>: True,
+        {
+            type Output = Decimal<{ const_max_u8(P, Q) }>;
 
-    #[inline(always)]
-    fn add(self, other: Decimal<Q>) -> Self::Output {
-        match P.cmp(&Q) {
-            Ordering::Equal => Self::Output {
-                coeff: self.coeff + other.coeff,
-            },
-            Ordering::Greater => Self::Output {
-                coeff: self.coeff + mul_pow_ten(other.coeff, P - Q),
-            },
-            Ordering::Less => Self::Output {
-                coeff: mul_pow_ten(self.coeff, Q - P) + other.coeff,
-            },
+            #[inline(always)]
+            fn $method(self, other: Decimal<Q>) -> Self::Output {
+                match P.cmp(&Q) {
+                    Ordering::Equal => Self::Output {
+                        coeff: $imp::$method(self.coeff, other.coeff),
+                    },
+                    Ordering::Greater => Self::Output {
+                        coeff: $imp::$method(
+                            self.coeff,
+                            mul_pow_ten(other.coeff, P - Q),
+                        ),
+                    },
+                    Ordering::Less => Self::Output {
+                        coeff: $imp::$method(
+                            mul_pow_ten(self.coeff, Q - P),
+                            other.coeff,
+                        ),
+                    },
+                }
+            }
         }
-    }
+    };
 }
 
+impl_add_sub_decimal!(impl Add, add);
 forward_ref_binop!(impl Add, add);
 
-impl<const P: u8, const Q: u8> Sub<Decimal<Q>> for Decimal<P>
-where
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
-    PrecLimitCheck<{ const_max_u8(P, Q) <= MAX_PREC }>: True,
-{
-    type Output = Decimal<{ const_max_u8(P, Q) }>;
-
-    #[inline(always)]
-    fn sub(self, other: Decimal<Q>) -> Self::Output {
-        match P.cmp(&Q) {
-            Ordering::Equal => Self::Output {
-                coeff: self.coeff - other.coeff,
-            },
-            Ordering::Greater => Self::Output {
-                coeff: self.coeff - mul_pow_ten(other.coeff, P - Q),
-            },
-            Ordering::Less => Self::Output {
-                coeff: mul_pow_ten(self.coeff, Q - P) - other.coeff,
-            },
-        }
-    }
-}
-
+impl_add_sub_decimal!(impl Sub, sub);
 forward_ref_binop!(impl Sub, sub);
 
 #[cfg(test)]
