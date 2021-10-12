@@ -9,7 +9,7 @@
 
 use std::{
     cmp::Ordering,
-    ops::{Add, Sub},
+    ops::{Add, AddAssign, Sub, SubAssign},
 };
 
 use num::Zero;
@@ -87,14 +87,14 @@ macro_rules! impl_add_sub_decimal {
                 }
             }
         }
+
+        forward_ref_binop!(impl $imp, $method);
     };
 }
 
 impl_add_sub_decimal!(impl Add, add);
-forward_ref_binop!(impl Add, add);
 
 impl_add_sub_decimal!(impl Sub, sub);
-forward_ref_binop!(impl Sub, sub);
 
 #[cfg(test)]
 mod add_sub_decimal_tests {

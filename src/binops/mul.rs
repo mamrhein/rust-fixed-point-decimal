@@ -88,11 +88,12 @@ macro_rules! impl_mul_decimal {
                 }
             }
         }
+
+        forward_ref_binop!(impl $imp, $method);
     };
 }
 
 impl_mul_decimal!(impl Mul, mul);
-forward_ref_binop!(impl Mul, mul);
 
 #[cfg(test)]
 mod mul_decimal_tests {
