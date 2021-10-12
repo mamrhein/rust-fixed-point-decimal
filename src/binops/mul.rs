@@ -71,20 +71,27 @@ pub const fn const_sum_u8(a: u8, b: u8) -> u8 {
     a + b
 }
 
-impl<const P: u8, const Q: u8> Mul<Decimal<Q>> for Decimal<P>
-where
-    PrecLimitCheck<{ P <= MAX_PREC }>: True,
-    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
-    PrecLimitCheck<{ (const_sum_u8(P, Q)) <= MAX_PREC }>: True,
-{
-    type Output = Decimal<{ const_sum_u8(P, Q) }>;
+macro_rules! impl_mul_decimal {
+    (impl $imp:ident, $method:ident) => {
+        impl<const P: u8, const Q: u8> $imp<Decimal<Q>> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+            PrecLimitCheck<{ (const_sum_u8(P, Q)) <= MAX_PREC }>: True,
+        {
+            type Output = Decimal<{ const_sum_u8(P, Q) }>;
 
-    #[inline(always)]
-    fn mul(self, other: Decimal<Q>) -> Self::Output {
-        Self::Output::new_raw(self.coeff * other.coeff)
-    }
+            #[inline(always)]
+            fn mul(self, other: Decimal<Q>) -> Self::Output {
+                Self::Output {
+                    coeff: $imp::$method(self.coeff, other.coeff),
+                }
+            }
+        }
+    };
 }
 
+impl_mul_decimal!(impl Mul, mul);
 forward_ref_binop!(impl Mul, mul);
 
 #[cfg(test)]
