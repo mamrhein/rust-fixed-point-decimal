@@ -7,7 +7,7 @@
 // $Source$
 // $Revision$
 
-use std::ops::Mul;
+use std::ops::{Mul, MulAssign};
 
 use num::One;
 
@@ -240,5 +240,46 @@ mod mul_integer_tests {
         assert_eq!(z.coeff, (&i * d).coeff);
         assert_eq!(z.coeff, (i * &d).coeff);
         assert_eq!(z.coeff, (&i * &d).coeff);
+    }
+}
+
+forward_op_assign!(impl MulAssign, mul_assign, Mul, mul);
+
+#[cfg(test)]
+mod mul_assign_tests {
+    use super::*;
+
+    #[test]
+    fn test_mul_assign_decimal() {
+        let mut x = Decimal::<2>::new_raw(123456);
+        let y = Decimal::<0>::TWO;
+        x *= y;
+        assert_eq!(x.coeff, 123456_i128 * 2);
+        let z = &y;
+        x *= z;
+        assert_eq!(x.coeff, 123456_i128 * 4);
+    }
+
+    #[test]
+    fn test_mul_assign_int() {
+        let mut x = Decimal::<2>::new_raw(123456);
+        x *= 2_i8;
+        assert_eq!(x.coeff, 123456_i128 * 2);
+        x *= &-1234567890_i128;
+        assert_eq!(x.coeff, 123456_i128 * 2 * -1234567890_i128);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_mul_assign_pos_overflow() {
+        let mut x = Decimal::<4>::new_raw(i128::MAX / 2 + 1);
+        x *= 2;
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_mul_assign_neg_overflow() {
+        let mut x = Decimal::<2>::new_raw(i128::MIN / 5 - 1);
+        x *= 5;
     }
 }

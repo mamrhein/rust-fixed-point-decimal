@@ -193,6 +193,21 @@ macro_rules! forward_ref_binop_decimal_int {
     }
 }
 
+macro_rules! forward_op_assign {
+    (impl $imp:ident, $method:ident, $base_imp:ident, $base_method:ident) => {
+        impl<const P: u8, T> $imp<T> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+            Decimal<P>: $base_imp<T, Output = Self>,
+        {
+            #[inline(always)]
+            fn $method(&mut self, other: T) {
+                *self = $base_imp::$base_method(*self, other);
+            }
+        }
+    };
+}
+
 pub const fn const_max_u8(a: u8, b: u8) -> u8 {
     if a > b {
         a

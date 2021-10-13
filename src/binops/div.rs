@@ -7,7 +7,7 @@
 // $Source$
 // $Revision$
 
-use std::ops::Div;
+use std::ops::{Div, DivAssign};
 
 use num::{integer::div_mod_floor, One, Zero};
 use rust_fixed_point_decimal_core::mul_pow_ten;
@@ -297,5 +297,58 @@ mod div_integer_tests {
         let x = mul_pow_ten(17, 20);
         let y = Decimal::<9>::new_raw(2);
         let _z = x / y;
+    }
+}
+
+forward_op_assign!(impl DivAssign, div_assign, Div, div);
+
+#[cfg(test)]
+mod div_assign_tests {
+    use super::*;
+
+    #[test]
+    fn test_div_assign_decimal() {
+        let mut x = Decimal::<9>::new_raw(1234567890);
+        x /= Decimal::<3>::new_raw(5000);
+        assert_eq!(x.coeff, 123456789 * 2);
+    }
+
+    #[test]
+    fn test_div_assign_int() {
+        let mut x = Decimal::<9>::new_raw(1234567890);
+        x /= -10_i64;
+        assert_eq!(x.coeff, -123456789);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_div_assign_decimal_by_int_zero() {
+        let mut x = Decimal::<9>::new_raw(17);
+        let y = i32::zero();
+        x /= y;
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_div_assign_decimal_by_decimal_zero() {
+        let mut x = Decimal::<9>::new_raw(25);
+        let y = Decimal::<3>::ZERO;
+        x /= y;
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_div_assign_decimal_by_int_prec_limit_exceeded() {
+        let mut x = Decimal::<9>::new_raw(17);
+        let y = 3;
+        x /= y;
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_div_assign_decimal_by_decimal_prec_limit_exceeded() {
+        let mut x = Decimal::<9>::new_raw(17);
+        let y = Decimal::<4>::new_raw(50000);
+        x /= y;
     }
 }

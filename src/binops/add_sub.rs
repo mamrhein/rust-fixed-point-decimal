@@ -352,3 +352,69 @@ mod add_sub_integer_tests {
         assert_eq!(z.coeff, (&i - &d).coeff);
     }
 }
+
+forward_op_assign!(impl AddAssign, add_assign, Add, add);
+
+forward_op_assign!(impl SubAssign, sub_assign, Sub, sub);
+
+#[cfg(test)]
+mod add_sub_assign_tests {
+    use super::*;
+
+    #[test]
+    fn test_add_assign_decimal() {
+        let mut x = Decimal::<5>::new_raw(1234567);
+        x += Decimal::<4>::new_raw(1);
+        assert_eq!(x.coeff, 1234577);
+        x += Decimal::<0>::new_raw(88);
+        assert_eq!(x.coeff, 10034577);
+    }
+
+    #[test]
+    fn test_add_assign_int() {
+        let mut x = Decimal::<5>::new_raw(1234567);
+        x += 1_u32;
+        assert_eq!(x.coeff, 1334567);
+        x += -109_i8;
+        assert_eq!(x.coeff, -9565433);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_add_assign_pos_overflow() {
+        let mut x = Decimal::<4>::new_raw(i128::MAX - 19999);
+        x += Decimal::<4>::TWO;
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_add_assign_neg_overflow() {
+        let mut x = Decimal::<2>::new_raw(i128::MIN + 99);
+        x += Decimal::<2>::NEG_ONE;
+    }
+
+    #[test]
+    fn test_sub_assign_decimal() {
+        let mut x = Decimal::<3>::new_raw(1234567);
+        x -= Decimal::<3>::new_raw(100);
+        assert_eq!(x.coeff, 1234467);
+        x -= Decimal::<0>::new_raw(1235);
+        assert_eq!(x.coeff, -533);
+    }
+
+    #[test]
+    fn test_sub_assign_int() {
+        let mut x = Decimal::<2>::new_raw(1234567);
+        x -= 1_u32;
+        assert_eq!(x.coeff, 1234467_i128);
+        x -= -109889_i128;
+        assert_eq!(x.coeff, 12223367_i128);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_sub_assign_neg_overflow() {
+        let mut x = Decimal::<4>::new_raw(i128::MIN + 99999);
+        x -= Decimal::<4>::TEN;
+    }
+}

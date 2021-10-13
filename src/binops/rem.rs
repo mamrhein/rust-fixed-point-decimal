@@ -9,7 +9,7 @@
 
 use std::{
     cmp::Ordering,
-    ops::{Rem, Sub},
+    ops::{Rem, RemAssign, Sub},
 };
 
 use num::Zero;
@@ -227,5 +227,35 @@ mod rem_integer_tests {
         let x = 25;
         let y = Decimal::<3>::ZERO;
         let _z = x % y;
+    }
+}
+
+forward_op_assign!(impl RemAssign, rem_assign, Rem, rem);
+
+#[cfg(test)]
+mod rem_assign_tests {
+    use super::*;
+
+    #[test]
+    fn test_rem_assign_decimal() {
+        let mut x = Decimal::<3>::new_raw(702);
+        let y = Decimal::<2>::new_raw(300);
+        x %= y;
+        assert_eq!(x.coeff, 702);
+        let z = Decimal::<2>::new_raw(-70);
+        x %= z;
+        assert_eq!(x.coeff, 2);
+    }
+
+    #[test]
+    fn test_rem_assign_int() {
+        let mut x = Decimal::<1>::new_raw(702);
+        let y = 7_u16;
+        x %= y;
+        assert_eq!(x.coeff, 2);
+        let mut x = Decimal::<5>::new_raw(-7027702);
+        let y = -33_i64;
+        x %= y;
+        assert_eq!(x.coeff, -427702);
     }
 }
