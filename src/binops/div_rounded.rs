@@ -19,7 +19,7 @@ use crate::{
 };
 
 pub trait DivRounded<Rhs, Result = Self> {
-    /// Returns `self` * `other`, rounded as `Result`.
+    /// Returns `self` / `other`, rounded as `Result`.
     fn div_rounded(self, rhs: Rhs) -> Result;
 }
 

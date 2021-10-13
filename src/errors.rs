@@ -13,7 +13,7 @@ use std::fmt::{Debug, Display, Formatter};
 /// binary operators on Decimal.
 ///
 /// This error is used as the error type for the [`TryFrom`] implementation of
-/// [`Decimal<P>`].
+/// `Decimal<P>`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DecimalError {
     PrecLimitExceeded,
