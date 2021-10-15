@@ -102,21 +102,24 @@ mod mul_decimal_tests {
         let y = x * x;
         assert_eq!(y.precision(), 8);
         assert_eq!(y.coeff, x.coeff * x.coeff);
-        let z = x * Decimal::<3>::NEG_ONE;
-        assert_eq!(z.precision(), 7);
-        assert_eq!(z.coeff, -x.coeff * 1000);
+        let z = x * Decimal::<4>::NEG_ONE;
+        assert_eq!(z.precision(), 8);
+        assert_eq!(z.coeff, -x.coeff * 10000);
     }
 
     #[test]
     fn test_mul_different_prec() {
         let x = Decimal::<5>::new_raw(1234567890);
         let y = Decimal::<1>::new_raw(890);
-        let z = x + y;
-        assert_eq!(z.coeff, x.coeff + y.coeff * 10000);
-        let z = y + x;
-        assert_eq!(z.coeff, x.coeff + y.coeff * 10000);
-        let z = x + Decimal::<3>::NEG_ONE;
-        assert_eq!(z.coeff, x.coeff - Decimal::<5>::ONE.coeff);
+        let z = x * y;
+        assert_eq!(z.precision(), 6);
+        assert_eq!(z.coeff, x.coeff * y.coeff);
+        let z = y * x;
+        assert_eq!(z.precision(), 6);
+        assert_eq!(z.coeff, x.coeff * y.coeff);
+        let z = x * Decimal::<3>::NEG_ONE;
+        assert_eq!(z.precision(), 8);
+        assert_eq!(z.coeff, -x.coeff * 1000);
     }
 
     #[test]
