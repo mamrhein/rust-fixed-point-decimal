@@ -34,6 +34,7 @@ where
             };
         }
         let r = MAX_PREC + Q - P;
+        // TODO: try to avoid overflowing shifted coeff
         let (quot, rem) =
             div_mod_floor(mul_pow_ten(self.coeff, r), other.coeff);
         if rem != 0 {
