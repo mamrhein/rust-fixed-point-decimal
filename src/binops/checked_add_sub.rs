@@ -49,11 +49,8 @@ macro_rules! impl_checked_add_sub_decimal {
                         mul_pow_ten(self.coeff, Q - P),
                         other.coeff,
                     ),
-                };
-                match coeff {
-                    Some(coeff) => Some(Decimal { coeff: coeff }),
-                    None => None,
-                }
+                }?;
+                Some(Decimal { coeff: coeff })
             }
         }
 
@@ -173,11 +170,8 @@ macro_rules! impl_checked_add_sub_decimal_and_int {
                     i128::$method(self.coeff, other as i128)
                 } else {
                     i128::$method(self.coeff, mul_pow_ten(other as i128, P))
-                };
-                match coeff {
-                    Some(coeff) => Some(Decimal { coeff: coeff }),
-                    None => None,
-                }
+                }?;
+                Some(Decimal { coeff: coeff })
             }
         }
 
@@ -193,11 +187,8 @@ macro_rules! impl_checked_add_sub_decimal_and_int {
                     i128::$method(self as i128, other.coeff)
                 } else {
                     i128::$method(mul_pow_ten(self as i128, P), other.coeff)
-                };
-                match coeff {
-                    Some(coeff) => Some(Decimal { coeff: coeff }),
-                    None => None,
-                }
+                }?;
+                Some(Decimal { coeff: coeff })
             }
         }
         )*
