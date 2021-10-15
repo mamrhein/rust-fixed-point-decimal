@@ -216,6 +216,10 @@ pub const fn const_max_u8(a: u8, b: u8) -> u8 {
     }
 }
 
+pub const fn const_sum_u8(a: u8, b: u8) -> u8 {
+    a + b
+}
+
 mod add_sub;
 mod checked_add_sub;
 mod cmp;

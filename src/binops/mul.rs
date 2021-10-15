@@ -12,6 +12,7 @@ use std::ops::{Mul, MulAssign};
 use num::One;
 
 use crate::{
+    binops::const_sum_u8,
     prec_constraints::{PrecLimitCheck, True},
     Decimal, MAX_PREC,
 };
@@ -65,10 +66,6 @@ mod one_tests {
         assert!(Decimal::<8>::is_one(&Decimal::<8>::one()));
         assert!(Decimal::<9>::is_one(&Decimal::<9>::one()));
     }
-}
-
-pub const fn const_sum_u8(a: u8, b: u8) -> u8 {
-    a + b
 }
 
 macro_rules! impl_mul_decimal {
