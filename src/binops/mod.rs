@@ -222,6 +222,7 @@ pub const fn const_sum_u8(a: u8, b: u8) -> u8 {
 
 mod add_sub;
 mod checked_add_sub;
+mod checked_div;
 mod checked_mul;
 mod cmp;
 mod div;
