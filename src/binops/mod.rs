@@ -217,6 +217,7 @@ pub const fn const_max_u8(a: u8, b: u8) -> u8 {
 }
 
 mod add_sub;
+mod checked_add_sub;
 mod cmp;
 mod div;
 pub mod div_rounded;
