@@ -32,25 +32,19 @@ where
             return None;
         }
         if other.eq_one() {
-            return match checked_mul_pow_ten(self.coeff, MAX_PREC - P) {
-                Some(shifted_coeff) => Some(Decimal::<9> {
-                    coeff: shifted_coeff,
-                }),
-                None => None,
-            };
+            let shifted_coeff = checked_mul_pow_ten(self.coeff, MAX_PREC - P)?;
+            return Some(Decimal::<9> {
+                coeff: shifted_coeff,
+            });
         }
         let r = MAX_PREC + Q - P;
-        match checked_mul_pow_ten(self.coeff, r) {
-            Some(shifted_coeff) => {
-                let (quot, rem) = div_mod_floor(shifted_coeff, other.coeff);
-                if rem != 0 {
-                    None
-                } else {
-                    Some(Decimal::<9> { coeff: quot })
-                }
-            }
-            // TODO: try to reduce shift
-            None => None,
+        // TODO: try to reduce shift in case of overflow
+        let shifted_coeff = checked_mul_pow_ten(self.coeff, r)?;
+        let (quot, rem) = div_mod_floor(shifted_coeff, other.coeff);
+        if rem != 0 {
+            None
+        } else {
+            Some(Decimal::<9> { coeff: quot })
         }
     }
 }
@@ -142,27 +136,17 @@ macro_rules! impl_div_decimal_and_int {
                     return None;
                 }
                 if other.is_one() {
-                    return match checked_mul_pow_ten(self.coeff, MAX_PREC - P) {
-                        Some(shifted_coeff) => Some(Decimal::<9> {
-                            coeff: shifted_coeff,
-                        }),
-                        None => None,
-                    };
+                    let shifted_coeff = checked_mul_pow_ten(self.coeff, MAX_PREC - P)?;
+                    return Some(Decimal::<9> { coeff: shifted_coeff });
                 }
                 let r = MAX_PREC - P;
-                match checked_mul_pow_ten(self.coeff, r) {
-                    Some(shifted_coeff) => {
-                        let (quot, rem) = div_mod_floor(
-                            shifted_coeff, other as i128
-                        );
-                        if rem != 0 {
-                            None
-                        } else {
-                            Some(Decimal::<9> { coeff: quot })
-                        }
-                    }
-                    // TODO: try to reduce shift
-                    None => None,
+                // TODO: try to reduce shift in case of overflow
+                let shifted_coeff = checked_mul_pow_ten(self.coeff, r)?;
+                let (quot, rem) = div_mod_floor(shifted_coeff, other as i128);
+                if rem != 0 {
+                    None
+                } else {
+                    Some(Decimal::<9> { coeff: quot })
                 }
             }
         }
@@ -178,27 +162,17 @@ macro_rules! impl_div_decimal_and_int {
                     return None;
                 }
                 if other.eq_one() {
-                    return match checked_mul_pow_ten(self as i128, MAX_PREC) {
-                        Some(shifted_int) => Some(Decimal::<9> {
-                            coeff: shifted_int,
-                        }),
-                        None => None,
-                    };
+                    let shifted_int = checked_mul_pow_ten(self as i128, MAX_PREC)?;
+                    return Some(Decimal::<9> {coeff: shifted_int });
                 }
                 let r = MAX_PREC + P;
-                match checked_mul_pow_ten(self as i128, r) {
-                    Some(shifted_int) => {
-                        let (quot, rem) = div_mod_floor(
-                            shifted_int, other.coeff
-                        );
-                        if rem != 0 {
-                            None
-                        } else {
-                            Some(Decimal::<9> { coeff: quot })
-                        }
-                    }
-                    // TODO: try to reduce shift
-                    None => None,
+                // TODO: try to reduce shift in case of overflow
+                let shifted_int = checked_mul_pow_ten(self as i128, r)?;
+                let (quot, rem) = div_mod_floor(shifted_int, other.coeff);
+                if rem != 0 {
+                    None
+                } else {
+                    Some(Decimal::<9> { coeff: quot })
                 }
             }
         }
