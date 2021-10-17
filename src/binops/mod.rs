@@ -224,6 +224,7 @@ mod add_sub;
 mod checked_add_sub;
 mod checked_div;
 mod checked_mul;
+mod checked_rem;
 mod cmp;
 mod div;
 pub mod div_rounded;
