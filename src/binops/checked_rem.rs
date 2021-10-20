@@ -10,7 +10,7 @@
 use std::cmp::Ordering;
 
 use num::{One, Zero};
-use rust_fixed_point_decimal_core::{checked_mul_pow_ten, mul_pow_ten};
+use rust_fixed_point_decimal_core::checked_mul_pow_ten;
 
 use crate::{
     binops::{checked_add_sub::CheckedSub, const_max_u8},
@@ -162,6 +162,7 @@ forward_ref_binop_decimal_int!(impl CheckedRem, checked_rem);
 #[allow(clippy::neg_multiply)]
 mod checked_rem_integer_tests {
     use num::{One, Zero};
+    use rust_fixed_point_decimal_core::mul_pow_ten;
 
     use super::*;
 
