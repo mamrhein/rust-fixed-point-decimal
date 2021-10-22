@@ -61,21 +61,25 @@ impl<const P: u8> Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
+    /// Returns true if self is equal to zero.
     #[inline(always)]
     pub fn eq_zero(&self) -> bool {
         self.coeff == 0
     }
 
+    /// Returns true if self is equal to one.
     #[inline(always)]
     pub fn eq_one(&self) -> bool {
         self.coeff == Self::ONE.coeff
     }
 
+    /// Returns true if self is less than zero.
     #[inline(always)]
     pub fn is_negative(&self) -> bool {
         self.coeff < 0
     }
 
+    /// Returns true if self is greater than zero.
     #[inline(always)]
     pub fn is_positive(&self) -> bool {
         self.coeff > 0

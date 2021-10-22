@@ -13,19 +13,31 @@ use rust_fixed_point_decimal_core::{
     dec_repr_from_str, ParseDecimalError, MAX_PREC,
 };
 
-/// Macro used to convert a number literal into a Decimal<P>.
+/// Macro used to convert a number literal into a Decimal\<P\>.
 ///
 /// The literal must be in the form
-/// \[+|-]<int>\[.<frac>]\[<e|E>\[+|-]<exp>] or
-/// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
+/// \[+|-]\<int\>\[.\<frac\>]\[<e|E>\[+|-]\<exp\>] or
+/// \[+|-].\<frac\>\[<e|E>\[+|-]\<exp\>].
 ///
-/// P is determined by the he number of fractional digits minus the value of the
+/// P is determined by the number of fractional digits minus the value of the
 /// signed exponent. It must not exceed the constant MAX_PREC.
 ///
-/// The resulting value must not exceed the limits given by Decimal::<P>::MIN
-/// and Decimal::<P>::MAX.
+/// The resulting value must not exceed the limits given by Decimal::\<P\>::MIN
+/// and Decimal::\<P\>::MAX.
 ///
-/// The macro panics if these conditions are not met!
+/// # Panics
+///
+/// The macro panics if the conditions listed above are not met!
+///
+/// # Examples
+///
+/// ```ignore
+/// let d = Dec!(17.5);
+/// assert_eq!(d.to_string(), "17.5");
+///
+/// let d = Dec!(-170.5e-2);
+/// assert_eq!(d.to_string(), "-1.705");
+/// ```
 #[allow(non_snake_case)]
 #[proc_macro]
 pub fn Dec(input: TokenStream) -> TokenStream {

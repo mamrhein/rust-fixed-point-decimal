@@ -49,16 +49,19 @@ const POWERS_OF_10: [i128; 39] = [
     100_000_000_000_000_000_000_000_000_000_000_000_000,
 ];
 
+#[doc(hidden)]
 #[inline]
 pub fn ten_pow(n: u8) -> i128 {
     POWERS_OF_10[n as usize]
 }
 
+#[doc(hidden)]
 #[inline]
 pub fn mul_pow_ten(val: i128, n: u8) -> i128 {
     val * ten_pow(n)
 }
 
+#[doc(hidden)]
 #[inline]
 pub fn checked_mul_pow_ten(val: i128, n: u8) -> Option<i128> {
     val.checked_mul(ten_pow(n))

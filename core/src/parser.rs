@@ -13,17 +13,24 @@ use crate::powers_of_ten::checked_mul_pow_ten;
 
 /// An error which can be returned when parsing a decimal literal.
 ///
-/// This error is used as the error type for the [`FromStr`] implementation of
-/// [`Decimal<P>`].
+/// This error is used as the error type for the `FromStr` implementation of
+/// `Decimal<P>`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseDecimalError {
+    /// An empty string has been given as literal.
     Empty,
+    /// The given string is not a valid decimal literal.
     Invalid,
+    /// The given decimal literal has more fractional digits than specified by
+    /// [crate::MAX_PREC].
     PrecLimitExceeded,
+    /// The given decimal literal would exceed the maximum value representable
+    /// by the type.
     MaxValueExceeded,
 }
 
 impl ParseDecimalError {
+    #[doc(hidden)]
     pub fn _description(&self) -> &str {
         match self {
             ParseDecimalError::Empty => "Empty string.",
@@ -178,6 +185,7 @@ fn parse_decimal_literal(lit: &str) -> Result<DecLitParts, ParseDecimalError> {
 /// The literal must be in the form
 /// \[+|-]<int>\[.<frac>]\[<e|E>\[+|-]<exp>] or
 /// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
+#[doc(hidden)]
 pub fn dec_repr_from_str(
     lit: &str,
 ) -> Result<(i128, isize), ParseDecimalError> {

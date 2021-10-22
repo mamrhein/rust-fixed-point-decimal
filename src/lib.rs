@@ -7,15 +7,21 @@
 // $Source$
 // $Revision$
 
+#![doc = include_str!("../README.md")]
 #![allow(dead_code)]
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 #![feature(associated_type_bounds)]
 #![feature(int_roundings)]
+#![warn(missing_docs)]
 
+#[doc(inline)]
 pub use binops::{div_rounded::DivRounded, mul_rounded::MulRounded};
+#[doc(inline)]
 pub use errors::*;
+#[doc(inline)]
 pub use rust_fixed_point_decimal_core::{ParseDecimalError, MAX_PREC};
+#[doc(inline)]
 pub use rust_fixed_point_decimal_macros::Dec;
 
 use crate::prec_constraints::{PrecLimitCheck, True};
@@ -38,6 +44,11 @@ mod prec_constraints {
     impl True for PrecLimitCheck<true> {}
 }
 
+/// Represents a decimal number as a coefficient (stored as an `i128` value)
+/// combined with a type parameter specifying the number of fractional decimal
+/// digits.
+///
+/// The type parameter `P` can be in the range 0 .. [`MAX_PREC`].
 #[derive(Copy, Clone, Eq, Ord)]
 #[repr(transparent)]
 pub struct Decimal<const P: u8>
@@ -53,12 +64,14 @@ where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     // needs to be public because of macro Dec!
+    #[doc(hidden)]
     #[inline(always)]
     pub fn new_raw(val: i128) -> Self {
         Self { coeff: val }
     }
 
     /// Internal representation. For debugging only!
+    #[doc(hidden)]
     #[inline(always)]
     pub fn coefficient(self) -> i128 {
         self.coeff

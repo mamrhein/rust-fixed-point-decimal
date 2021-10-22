@@ -10,6 +10,7 @@
 mod parser;
 mod powers_of_ten;
 
+/// The maximum number of fractional decimal digits supported by `Decimal<P>`.
 pub const MAX_PREC: u8 = 9;
 
 use std::cmp::Ordering;
@@ -17,6 +18,7 @@ use std::cmp::Ordering;
 pub use parser::{dec_repr_from_str, ParseDecimalError};
 pub use powers_of_ten::{checked_mul_pow_ten, mul_pow_ten, ten_pow};
 
+#[doc(hidden)]
 #[inline]
 pub fn adjust_prec(x: i128, p: u8, y: i128, q: u8) -> (i128, i128) {
     match p.cmp(&q) {
@@ -26,6 +28,7 @@ pub fn adjust_prec(x: i128, p: u8, y: i128, q: u8) -> (i128, i128) {
     }
 }
 
+#[doc(hidden)]
 #[inline]
 pub fn checked_adjust_prec(
     x: i128,

@@ -18,6 +18,7 @@ use crate::{
     Decimal, DecimalError, MAX_PREC,
 };
 
+/// Division giving a result rounded to fit a `Result` type.
 pub trait DivRounded<Rhs, Result = Self> {
     /// Returns `self` / `other`, rounded as `Result`.
     fn div_rounded(self, rhs: Rhs) -> Result;

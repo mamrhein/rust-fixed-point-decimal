@@ -22,11 +22,13 @@ use crate::{
 // these the corresponding functions are implemented separately.
 // ???: remove these impls alltogether?
 impl One for Decimal<0> {
+    /// Returns the multiplicative identity element of Self, Self::ONE.
     #[inline(always)]
     fn one() -> Self {
         Self::ONE
     }
 
+    /// Returns true if self is equal to the multiplicative identity.
     #[inline(always)]
     fn is_one(&self) -> bool {
         self.eq_one()
@@ -38,11 +40,13 @@ where
     PrecLimitCheck<{ 0 < P }>: True,
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
+    /// Returns the multiplicative identity element of Self, Self::ONE.
     #[inline(always)]
     pub fn one() -> Self {
         Self::ONE
     }
 
+    /// Returns true if self is equal to the multiplicative identity.
     #[inline(always)]
     pub fn is_one(&self) -> bool {
         self.eq_one()

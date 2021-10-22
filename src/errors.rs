@@ -13,17 +13,25 @@ use std::fmt::{Debug, Display, Formatter};
 /// binary operators on Decimal.
 ///
 /// This error is used as the error type for the [`TryFrom`] implementation of
-/// `Decimal<P>`.
+/// `Decimal<P>`. It is also used when the implementations of the numerical
+/// operators panic.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DecimalError {
+    /// The precise result would have more than [crate::MAX_PREC] fractional
+    /// decimal digits.
     PrecLimitExceeded,
+    /// The result would exceed the maximum value representable by the type.
     MaxValueExceeded,
+    /// Attempt to convert an infinite value to Decimal.
     InfiniteValue,
+    /// Attempt to convert a 'not-a-number' value to a Decimal.
     NotANumber,
+    /// A division op called with a divisor equal to zero.
     DivisionByZero,
 }
 
 impl DecimalError {
+    #[doc(hidden)]
     pub fn _description(&self) -> &str {
         match self {
             DecimalError::PrecLimitExceeded => {

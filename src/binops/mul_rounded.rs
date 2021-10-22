@@ -17,6 +17,7 @@ use crate::{
     Decimal, MAX_PREC,
 };
 
+/// Multiplication giving a result rounded to fit a `Result` type.
 pub trait MulRounded<Rhs, Result = Self> {
     /// Returns `self` * `other`, rounded as `Result`.
     fn mul_rounded(self, rhs: Rhs) -> Result;
