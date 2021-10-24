@@ -9,8 +9,6 @@
 
 use std::ops::{Mul, MulAssign};
 
-use num::One;
-
 use crate::{
     binops::const_sum_u8,
     prec_constraints::{PrecLimitCheck, True},
@@ -18,26 +16,12 @@ use crate::{
 };
 
 // The trait One requires Mul<Self, Output = Self>. This is only satisfied for
-// Decimal<0>. All other Decimal<P> are Mul<Self, Output = Decimal<P+P>. So, for
-// these the corresponding functions are implemented separately.
-// ???: remove these impls alltogether?
-impl One for Decimal<0> {
-    /// Returns the multiplicative identity element of Self, Self::ONE.
-    #[inline(always)]
-    fn one() -> Self {
-        Self::ONE
-    }
-
-    /// Returns true if self is equal to the multiplicative identity.
-    #[inline(always)]
-    fn is_one(&self) -> bool {
-        self.eq_one()
-    }
-}
+// Decimal<0>. All other Decimal<P> are Mul<Self, Output = Decimal<P+P>.
+// So, the corresponding functions are implemented separately.
 
 impl<const P: u8> Decimal<P>
 where
-    PrecLimitCheck<{ 0 < P }>: True,
+    // PrecLimitCheck<{ 0 < P }>: True,
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     /// Returns the multiplicative identity element of Self, Self::ONE.
