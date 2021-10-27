@@ -9,7 +9,7 @@
 
 use std::cmp::Ordering;
 
-use rust_fixed_point_decimal_core::checked_adjust_prec;
+use rust_fixed_point_decimal_core::{checked_adjust_prec, checked_mul_pow_ten};
 
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
@@ -208,3 +208,56 @@ mod tests {
         assert!(!Decimal::<9>::eq_one(&Decimal::<9>::ZERO));
     }
 }
+
+// Implementing the symmetric comparison using the following macros also for
+// `u8` causes a compiler error[E0391]:
+// cycle detected when building an abstract representation for the const
+// argument ...
+// So for now it's left out.
+// TODO: check with next rustc version!
+
+macro_rules! impl_decimal_eq_int {
+    () => {
+        impl_decimal_eq_int!(i8, u16, i16, u32, i32, u64, i64, i128);
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const P: u8> PartialEq<$t> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+        {
+            #[inline(always)]
+            fn eq(&self, other: &$t) -> bool {
+                match checked_mul_pow_ten((*other) as i128, P) {
+                    Some(coeff) => self.coeff == coeff,
+                    None => false,
+                }
+            }
+        }
+        )*
+    }
+}
+
+impl_decimal_eq_int!();
+
+macro_rules! impl_int_eq_decimal {
+    () => {
+        impl_int_eq_decimal!(i8, u16, i16, u32, i32, u64, i64, i128);
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const Q: u8> PartialEq<Decimal<Q>> for $t
+        where
+            PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+            Decimal<Q>: PartialEq<$t>,
+        {
+            #[inline(always)]
+            fn eq(&self, other: &Decimal<Q>) -> bool {
+                PartialEq::eq(other, self)
+            }
+        }
+        )*
+    }
+}
+
+impl_int_eq_decimal!();
