@@ -87,7 +87,7 @@ where
 }
 
 #[cfg(test)]
-mod tests {
+mod cmp_decimals_tests {
     use std::cmp::{max, min, Ordering};
 
     use crate::Decimal;
@@ -216,9 +216,36 @@ mod tests {
 // So for now it's left out.
 // TODO: check with next rustc version!
 
-macro_rules! impl_decimal_eq_int {
+macro_rules! impl_decimal_eq_uint {
     () => {
-        impl_decimal_eq_int!(i8, u16, i16, u32, i32, u64, i64, i128);
+        impl_decimal_eq_uint!(u16, u32, u64);
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const P: u8> PartialEq<$t> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+        {
+            #[inline(always)]
+            fn eq(&self, other: &$t) -> bool {
+                if self.is_negative() {
+                    return false;
+                }
+                match checked_mul_pow_ten((*other) as i128, P) {
+                    Some(coeff) => self.coeff == coeff,
+                    None => false,
+                }
+            }
+        }
+        )*
+    }
+}
+
+impl_decimal_eq_uint!();
+
+macro_rules! impl_decimal_eq_signed_int {
+    () => {
+        impl_decimal_eq_signed_int!(i8, i16, i32, i64, i128);
     };
     ($($t:ty),*) => {
         $(
@@ -238,7 +265,7 @@ macro_rules! impl_decimal_eq_int {
     }
 }
 
-impl_decimal_eq_int!();
+impl_decimal_eq_signed_int!();
 
 macro_rules! impl_int_eq_decimal {
     () => {
@@ -261,3 +288,156 @@ macro_rules! impl_int_eq_decimal {
 }
 
 impl_int_eq_decimal!();
+
+macro_rules! impl_decimal_cmp_signed_int {
+    () => {
+        impl_decimal_cmp_signed_int!(i8, i16, i32, i64, i128);
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const P: u8> PartialOrd<$t> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+        {
+            #[inline(always)]
+            fn partial_cmp(&self, other: &$t) -> Option<Ordering> {
+                match checked_mul_pow_ten((*other) as i128, P) {
+                    Some(coeff) => self.coeff.partial_cmp(&coeff),
+                    None => {
+                        if *other >= 0 {
+                            Some(Ordering::Less)
+                        } else {
+                            Some(Ordering::Greater)
+                        }
+                    },
+                }
+            }
+        }
+        )*
+    }
+}
+
+impl_decimal_cmp_signed_int!();
+
+macro_rules! impl_signed_int_cmp_decimal {
+    () => {
+        impl_signed_int_cmp_decimal!(i8, i16, i32, i64, i128);
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const Q: u8> PartialOrd<Decimal<Q>> for $t
+        where
+            PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+        {
+            #[inline(always)]
+            fn partial_cmp(&self, other: &Decimal<Q>) -> Option<Ordering> {
+                match checked_mul_pow_ten((*self) as i128, Q) {
+                    Some(coeff) => coeff.partial_cmp(&other.coeff),
+                    None => {
+                        if *self < 0 {
+                            Some(Ordering::Less)
+                        } else {
+                            Some(Ordering::Greater)
+                        }
+                    },
+                }
+            }
+        }
+        )*
+    }
+}
+
+impl_signed_int_cmp_decimal!();
+
+macro_rules! impl_decimal_cmp_uint {
+    () => {
+        impl_decimal_cmp_uint!(u16, u32, u64);
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const P: u8> PartialOrd<$t> for Decimal<P>
+        where
+            PrecLimitCheck<{ P <= MAX_PREC }>: True,
+        {
+            #[inline(always)]
+            fn partial_cmp(&self, other: &$t) -> Option<Ordering> {
+                if self.is_negative() {
+                    return Some(Ordering::Less);
+                }
+                match checked_mul_pow_ten((*other) as i128, P) {
+                    Some(coeff) => self.coeff.partial_cmp(&coeff),
+                    None => Some(Ordering::Less),
+                }
+            }
+        }
+        )*
+    }
+}
+
+impl_decimal_cmp_uint!();
+
+macro_rules! impl_uint_cmp_decimal {
+    () => {
+        impl_uint_cmp_decimal!(u16, u32, u64);
+    };
+    ($($t:ty),*) => {
+        $(
+        impl<const Q: u8> PartialOrd<Decimal<Q>> for $t
+        where
+            PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+        {
+            #[inline(always)]
+            fn partial_cmp(&self, other: &Decimal<Q>) -> Option<Ordering> {
+                if other.is_negative() {
+                    return Some(Ordering::Greater);
+                }
+                match checked_mul_pow_ten((*self) as i128, Q) {
+                    Some(coeff) => coeff.partial_cmp(&other.coeff),
+                    None => Some(Ordering::Greater),
+                }
+            }
+        }
+        )*
+    }
+}
+
+impl_uint_cmp_decimal!();
+
+#[cfg(test)]
+mod cmp_decimals_and_ints_tests {
+    use std::cmp::Ordering;
+
+    use crate::Decimal;
+
+    #[test]
+    fn test_eq() {
+        let x = Decimal::<1>::new_raw(170);
+        assert!(x.eq(&x));
+        let y = 17_u32;
+        assert!(x.eq(&y));
+        assert!(y.eq(&x));
+        let y = 17_i128;
+        assert_eq!(x, y);
+        assert_eq!(y, x);
+    }
+
+    #[test]
+    fn test_ne() {
+        let x = Decimal::<7>::new_raw(-178000);
+        let y = 0_i8;
+        assert_ne!(x, y);
+        assert_eq!(x.partial_cmp(&y), Some(Ordering::Less));
+        assert!(x < y);
+        assert!(y > x);
+        let y = 1_u32;
+        assert_ne!(x, y);
+        assert_eq!(x.partial_cmp(&y), Some(Ordering::Less));
+        assert!(x < y);
+        assert!(y > x);
+        let x = Decimal::<1>::new_raw(178);
+        let y = 18_u64;
+        assert_ne!(x, y);
+        assert!(x <= y);
+        assert!(y >= x);
+    }
+}
