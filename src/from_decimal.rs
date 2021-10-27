@@ -15,6 +15,8 @@ use crate::{errors::DecimalError, Decimal, PrecLimitCheck, True, MAX_PREC};
 // Can't implement trait TryFrom here, because it conflicts with crate `core`:
 // impl<T, U> std::convert::TryFrom<U> for T where U: Into<T>
 // TODO: check again when feature 'specialization' lands
+// TODO: make impl pub
+// TODO: write doc comment
 impl<const P: u8> Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
