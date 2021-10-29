@@ -7,6 +7,7 @@ description = "Decimal fixed-point arithmetic."
 readme = "README.md"
 homepage = "https://github.com/mamrhein/rust-fixed-point-decimal"
 repository = "https://github.com/mamrhein/rust-fixed-point-decimal"
+documentation = "https://docs.rs/rust-fixed-point-decimal/"
 license-file = "LICENSE.TXT"
 keywords = ["number", "decimal", "fixed-point", "arithmetics"]
 categories = ["data-structures", "mathematics"]
