@@ -25,8 +25,10 @@ where
 
     /// Returns -self.
     ///
+    /// # Panics
+    ///
     /// Panics with 'attempt to negate with overflow' when called on
-    /// Decimal::<P>::MIN!
+    /// `Decimal::<P>::MIN`!
     fn neg(self) -> Self::Output {
         Self::Output { coeff: -self.coeff }
     }
@@ -40,8 +42,10 @@ where
 
     /// Returns -self.
     ///
+    /// #Panics
+    ///
     /// Panics with 'attempt to negate with overflow' when called on
-    /// Decimal::<P>::MIN!
+    /// `Decimal::<P>::MIN`!
     fn neg(self) -> Self::Output {
         Self::Output { coeff: -self.coeff }
     }
@@ -61,8 +65,22 @@ where
 
     /// Returns the largest integral value <= `self`.
     ///
+    /// # Panics
+    ///
     /// Panics with 'attempt to multiply with overflow' when called on a value
-    /// less than (Decimal::<P>::MIN / 10 ^ P) * 10 ^ P !
+    /// less than
+    ///
+    /// `(Decimal::<P>::MIN / 10 ^ P) * 10 ^ P` !
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rust_fixed_point_decimal::Dec;
+    /// let d = Dec!(17.5);
+    /// assert_eq!(d.floor().to_string(), "17.0");
+    /// let d = Dec!(-17.050);
+    /// assert_eq!(d.floor().to_string(), "-18.000");
+    /// ```
     #[inline]
     pub fn floor(&self) -> Self {
         match P {
@@ -75,8 +93,22 @@ where
 
     /// Returns the smallest integral value >= `self`.
     ///
+    /// # Panics
+    ///
     /// Panics with 'attempt to multiply with overflow' when called on a value
-    /// greater than (Decimal::<P>::MAX / 10 ^ P) * 10 ^ P !
+    /// greater than
+    ///
+    /// `(Decimal::<P>::MAX / 10 ^ P) * 10 ^ P` !
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rust_fixed_point_decimal::Dec;
+    /// let d = Dec!(17.5);
+    /// assert_eq!(d.ceil().to_string(), "18.0");
+    /// let d = Dec!(-17.50);
+    /// assert_eq!(d.ceil().to_string(), "-17.00");
+    /// ```
     #[inline]
     pub fn ceil(&self) -> Self {
         match P {
@@ -87,7 +119,17 @@ where
         }
     }
 
-    /// Returns the integer part of `self`.
+    /// Returns the integral part of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rust_fixed_point_decimal::Dec;
+    /// let d = Dec!(17.5);
+    /// assert_eq!(d.trunc().to_string(), "17.0");
+    /// let d = Dec!(-17.55555);
+    /// assert_eq!(d.trunc().to_string(), "-17.00000");
+    /// ```
     #[inline]
     pub fn trunc(&self) -> Self {
         if P == 0 {
@@ -100,6 +142,16 @@ where
     }
 
     /// Returns the fractional part of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rust_fixed_point_decimal::Dec;
+    /// let d = Dec!(17.050);
+    /// assert_eq!(d.fract().to_string(), "0.050");
+    /// let d = Dec!(-17.5);
+    /// assert_eq!(d.fract().to_string(), "-0.5");
+    /// ```
     #[inline]
     pub fn fract(&self) -> Self {
         if P == 0 {

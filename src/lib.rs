@@ -53,7 +53,7 @@ mod prec_constraints {
 #[repr(transparent)]
 pub struct Decimal<const P: u8>
 where
-    Decimal<P>: Sized,
+    // Decimal<P>: Sized,
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
     coeff: i128,
@@ -113,7 +113,7 @@ impl<const P: u8> Default for Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
-    /// Default value: Decimal::<P>::ZERO
+    /// Default value: Decimal::\<P\>::ZERO
     #[inline(always)]
     fn default() -> Self {
         Self::ZERO

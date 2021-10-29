@@ -17,6 +17,8 @@ use crate::{
     Decimal, MAX_PREC,
 };
 
+/// Enum representiong the different methods used when rounding a `Decimal`
+/// value.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RoundingMode {
     /// Round away from zero if last digit after rounding towards zero would
@@ -44,22 +46,33 @@ thread_local!(
 );
 
 impl Default for RoundingMode {
+    /// Returns the default RoundingMode set for the current thread.
     fn default() -> Self {
         DFLT_ROUNDING_MODE.with(|m| *m.borrow())
     }
 }
 
 impl RoundingMode {
+    /// Sets the default RoundingMode for the current thread.
     fn set_default(mode: RoundingMode) {
         DFLT_ROUNDING_MODE.with(|m| *m.borrow_mut() = mode)
     }
 }
 
+/// Types providing methods to round their values to a given number of fractinal
+/// digits.
 pub trait Round
 where
     Self: Sized,
 {
+    /// Returns a new `Self` instance with its value rounded to `n_frac_digits`
+    /// fractional digits according to the current `RoundingMode`.
     fn round(self: Self, n_frac_digits: i8) -> Self;
+
+    /// Returns a new `Self` instance with its value rounded to `n_frac_digits`
+    /// fractional digits according to the current `RoundingMode`, wrapped in
+    /// `Option::Some`, or `Option::None` if the result can not be
+    /// represented by `Self`.
     fn checked_round(self: Self, n_frac_digits: i8) -> Option<Self>;
 }
 
@@ -67,6 +80,12 @@ impl<const P: u8> Round for Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
+    /// Returns a new `Decimal<P>` with its value rounded to `n_frac_digits`
+    /// fractional digits according to the current `RoundingMode`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the resulting value can not be represented by `Decimal<P>`!
     fn round(self, n_frac_digits: i8) -> Self {
         if n_frac_digits >= P as i8 {
             self.clone()
@@ -80,6 +99,10 @@ where
         }
     }
 
+    /// Returns a new `Decimal<P>` instance with its value rounded to
+    /// `n_frac_digits` fractional digits according to the current
+    /// `RoundingMode`, wrapped in `Option::Some`, or `Option::None` if the
+    /// result can not be represented by `Decimal<P>`.
     fn checked_round(self, n_frac_digits: i8) -> Option<Self> {
         if n_frac_digits >= P as i8 {
             Some(self.clone())
@@ -97,11 +120,14 @@ where
     }
 }
 
+/// Types providing methods to round their values to fit a given type `T`.
 pub trait RoundInto<T>
 where
     Self: Sized,
     T: Sized,
 {
+    /// Return a new `T` instance with a value equivalent to `self` rounded to
+    /// a number of fractional digits implied by `T`.
     fn round_into(self: Self) -> T;
 }
 
@@ -109,6 +135,11 @@ impl<const P: u8> RoundInto<i128> for Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
+    /// Return a new `i128` instance with a value equivalent to `self.round(0)`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the result overflows `i128::MAX`!
     #[inline(always)]
     fn round_into(self: Self) -> i128 {
         div_rounded(self.coeff, ten_pow(P), None)
@@ -121,6 +152,12 @@ where
     PrecLimitCheck<{ Q <= MAX_PREC }>: True,
     PrecLimitCheck<{ Q < P }>: True,
 {
+    /// Return a new `Decimal<Q>` instance with a value equivalent to
+    /// `self.round(Q)`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the result overflows `Decimal::<Q>::MAX`!
     #[inline(always)]
     fn round_into(self: Self) -> Decimal<Q> {
         Decimal::<Q> {

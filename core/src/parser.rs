@@ -22,7 +22,7 @@ pub enum ParseDecimalError {
     /// The given string is not a valid decimal literal.
     Invalid,
     /// The given decimal literal has more fractional digits than specified by
-    /// [crate::MAX_PREC].
+    /// the type parameter `P`.
     PrecLimitExceeded,
     /// The given decimal literal would exceed the maximum value representable
     /// by the type.

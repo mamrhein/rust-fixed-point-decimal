@@ -54,6 +54,23 @@ impl<const P: u8> fmt::Display for Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
+    /// Formats the value using the given formatter.
+    ///
+    /// If the format specifies less fractional digits than `self.precision()`,
+    /// the value gets rounded according to the default rounding mode.
+    ///
+    /// # Examples:
+    ///
+    /// ```rust
+    /// # #![allow(incomplete_features)]
+    /// # #![feature(generic_const_exprs)]
+    /// # use std::fmt;
+    /// # use rust_fixed_point_decimal::{Dec, Decimal};
+    /// let d = Dec!(-1234.56);
+    /// assert_eq!(format!("{}", d), "-1234.56");
+    /// assert_eq!(format!("{:014.3}", d), "-000001234.560");
+    /// assert_eq!(format!("{:10.1}", d), "   -1234.6");
+    /// ```
     fn fmt(&self, form: &mut fmt::Formatter<'_>) -> fmt::Result {
         let tmp: String;
         let prec = match form.precision() {

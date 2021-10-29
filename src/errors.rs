@@ -22,9 +22,9 @@ pub enum DecimalError {
     PrecLimitExceeded,
     /// The result would exceed the maximum value representable by the type.
     MaxValueExceeded,
-    /// Attempt to convert an infinite value to Decimal.
+    /// Attempt to convert an infinite value to `Decimal`.
     InfiniteValue,
-    /// Attempt to convert a 'not-a-number' value to a Decimal.
+    /// Attempt to convert a 'not-a-number' value to a `Decimal`.
     NotANumber,
     /// A division op called with a divisor equal to zero.
     DivisionByZero,

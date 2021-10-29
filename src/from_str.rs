@@ -19,11 +19,41 @@ where
 {
     type Err = ParseDecimalError;
 
-    /// Convert a number literal into a Decimal<P>.
+    /// Convert a number literal into a `Decimal<P>`.
     ///
     /// The literal must be in the form
-    /// \[+|-]<int>\[.<frac>]\[<e|E>\[+|-]<exp>] or
-    /// \[+|-].<frac>\[<e|E>\[+|-]<exp>].
+    ///
+    /// `[+|-]<int>[.<frac>][<e|E>[+|-]<exp>]`
+    ///
+    /// or
+    ///
+    /// `[+|-].<frac>[<e|E>[+|-]<exp>]`.
+    ///
+    /// The function returns an error in these cases:
+    ///
+    /// * An empty string has been given as `lit` -> `ParseDecimalError::Empty`
+    /// * `lit` does not fit one of the two forms given above ->
+    ///   `ParseDecimalError::Invalid`
+    /// * The number of fractional digits in `lit` minus the value of the signed
+    ///   exponent in `lit` exceeds the type parameter `P` ->
+    ///   `ParseDecimalError::PrecLimitExceeded`
+    /// * The given decimal literal exceeds the maximum value representable by
+    ///   the type -> ParseDecimalError::MaxValueExceeded
+    ///
+    /// # Examples:
+    ///
+    /// ```rust
+    /// # #![allow(incomplete_features)]
+    /// # #![feature(generic_const_exprs)]
+    /// # use rust_fixed_point_decimal::{Decimal, ParseDecimalError};
+    /// # use std::str::FromStr;
+    /// # fn main() -> Result<(), ParseDecimalError> {
+    /// let d = Decimal::<4>::from_str("38.207")?;
+    /// assert_eq!(d.to_string(), "38.2070");
+    /// let d = Decimal::<7>::from_str("-132.0207e-2")?;
+    /// assert_eq!(d.to_string(), "-1.3202070");
+    /// # Ok(()) }
+    /// ```
     fn from_str(lit: &str) -> Result<Self, Self::Err> {
         let prec = P as isize;
         let (coeff, exponent) = dec_repr_from_str(lit)?;
