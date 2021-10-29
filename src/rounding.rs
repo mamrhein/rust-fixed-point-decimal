@@ -86,6 +86,20 @@ where
     /// # Panics
     ///
     /// Panics if the resulting value can not be represented by `Decimal<P>`!
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rust_fixed_point_decimal::{Dec, Round};
+    /// let d = Dec!(28.27093);
+    /// let r = d.round(4);
+    /// assert_eq!(r.to_string(), "28.27090");
+    /// let r = d.round(1);
+    /// assert_eq!(r.to_string(), "28.30000");
+    /// let r = d.round(0);
+    /// assert_eq!(r.to_string(), "28.00000");
+    /// let r = d.round(-1);
+    /// assert_eq!(r.to_string(), "30.00000");
     fn round(self, n_frac_digits: i8) -> Self {
         if n_frac_digits >= P as i8 {
             self.clone()
@@ -103,6 +117,23 @@ where
     /// `n_frac_digits` fractional digits according to the current
     /// `RoundingMode`, wrapped in `Option::Some`, or `Option::None` if the
     /// result can not be represented by `Decimal<P>`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rust_fixed_point_decimal::{Dec, Decimal, Round};
+    /// # fn main() {
+    /// # fn f() -> Option<Decimal<5>> {
+    /// let d = Dec!(28.27093);
+    /// let r = d.checked_round(4)?;
+    /// assert_eq!(r.to_string(), "28.27090");
+    /// let r = d.checked_round(0)?;
+    /// assert_eq!(r.to_string(), "28.00000");
+    /// let d = Decimal::<3>::MAX;
+    /// let r = d.checked_round(0);
+    /// assert_eq!(r, None);
+    /// # Option::None
+    /// # } f();}
     fn checked_round(self, n_frac_digits: i8) -> Option<Self> {
         if n_frac_digits >= P as i8 {
             Some(self.clone())
@@ -141,6 +172,15 @@ where
     /// # Panics
     ///
     /// Panics if the result overflows `i128::MAX`!
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rust_fixed_point_decimal::{Dec, Decimal, RoundInto};
+    /// let d = Dec!(378.603);
+    /// let i: i128 = d.round_into();
+    /// assert_eq!(i, 379);
+    /// ```
     #[inline(always)]
     fn round_into(self: Self) -> i128 {
         div_rounded(self.coeff, ten_pow(P), None)
@@ -159,6 +199,19 @@ where
     /// # Panics
     ///
     /// Panics if the result overflows `Decimal::<Q>::MAX`!
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #![allow(incomplete_features)]
+    /// # #![feature(generic_const_exprs)]
+    /// # use rust_fixed_point_decimal::{Dec, Decimal, RoundInto};
+    /// let d = Dec!(378.60350);
+    /// let r: Decimal<3> = d.round_into();
+    /// assert_eq!(r.to_string(), "378.604");
+    /// let r: Decimal<1> = d.round_into();
+    /// assert_eq!(r.to_string(), "378.6");
+    /// ```
     #[inline(always)]
     fn round_into(self: Self) -> Decimal<Q> {
         Decimal::<Q> {
