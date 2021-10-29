@@ -20,6 +20,8 @@ pub use binops::{div_rounded::DivRounded, mul_rounded::MulRounded};
 #[doc(inline)]
 pub use errors::*;
 #[doc(inline)]
+pub use rounding::{Round, RoundInto, RoundingMode};
+#[doc(inline)]
 pub use rust_fixed_point_decimal_core::{ParseDecimalError, MAX_PREC};
 #[doc(inline)]
 pub use rust_fixed_point_decimal_macros::Dec;

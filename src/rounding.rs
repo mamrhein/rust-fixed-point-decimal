@@ -54,13 +54,13 @@ impl Default for RoundingMode {
 
 impl RoundingMode {
     /// Sets the default RoundingMode for the current thread.
-    fn set_default(mode: RoundingMode) {
+    pub fn set_default(mode: RoundingMode) {
         DFLT_ROUNDING_MODE.with(|m| *m.borrow_mut() = mode)
     }
 }
 
-/// Types providing methods to round their values to a given number of fractinal
-/// digits.
+/// Types providing methods to round their values to a given number of
+/// fractional digits.
 pub trait Round
 where
     Self: Sized,
@@ -135,7 +135,8 @@ impl<const P: u8> RoundInto<i128> for Decimal<P>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
 {
-    /// Return a new `i128` instance with a value equivalent to `self.round(0)`.
+    /// Returns a new `i128` instance with a value equivalent to
+    /// `self.round(0)`.
     ///
     /// # Panics
     ///
@@ -152,7 +153,7 @@ where
     PrecLimitCheck<{ Q <= MAX_PREC }>: True,
     PrecLimitCheck<{ Q < P }>: True,
 {
-    /// Return a new `Decimal<Q>` instance with a value equivalent to
+    /// Returns a new `Decimal<Q>` instance with a value equivalent to
     /// `self.round(Q)`.
     ///
     /// # Panics
