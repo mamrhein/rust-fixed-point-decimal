@@ -171,7 +171,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the result overflows `i128::MAX`!
+    /// Panics if the result overflows `i128::MAX` or `i128::MIN`!
     ///
     /// # Examples
     ///
@@ -198,7 +198,8 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the result overflows `Decimal::<Q>::MAX`!
+    /// Panics if the result overflows `Decimal::<Q>::MAX` or
+    /// `Decimal::<Q>::MIN`!
     ///
     /// # Examples
     ///
