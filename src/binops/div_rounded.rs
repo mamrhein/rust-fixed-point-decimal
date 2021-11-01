@@ -7,7 +7,7 @@
 // $Source$
 // $Revision$
 
-use std::{cmp::Ordering, ops::Div};
+use std::cmp::Ordering;
 
 use num::Zero;
 use rust_fixed_point_decimal_core::ten_pow;
@@ -29,7 +29,6 @@ impl<const P: u8, const Q: u8, const R: u8> DivRounded<Decimal<Q>, Decimal<R>>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
     PrecLimitCheck<{ Q <= MAX_PREC }>: True,
-    Decimal<P>: Div<Decimal<Q>>,
     PrecLimitCheck<{ R <= MAX_PREC }>: True,
 {
     #[inline(always)]

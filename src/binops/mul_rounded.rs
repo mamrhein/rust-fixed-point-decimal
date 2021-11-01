@@ -7,7 +7,7 @@
 // $Source$
 // $Revision$
 
-use std::{cmp::Ordering, ops::Mul};
+use std::cmp::Ordering;
 
 use rust_fixed_point_decimal_core::ten_pow;
 
@@ -28,7 +28,6 @@ impl<const P: u8, const Q: u8, const R: u8> MulRounded<Decimal<Q>, Decimal<R>>
 where
     PrecLimitCheck<{ P <= MAX_PREC }>: True,
     PrecLimitCheck<{ Q <= MAX_PREC }>: True,
-    Decimal<P>: Mul<Decimal<Q>>,
     PrecLimitCheck<{ R <= MAX_PREC }>: True,
 {
     #[inline(always)]
