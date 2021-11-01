@@ -38,7 +38,7 @@ mod tests {
         }
 
         fn total(&self) -> Decimal<2> {
-            let rate: Decimal<4> = (100_u8 - self.discount).div_rounded(100_u8);
+            let rate: Decimal<9> = (100_u8 - self.discount).div_rounded(100_u8);
             let net_price: Decimal<2> = self.price.mul_rounded(rate);
             self.quantity * net_price
         }
