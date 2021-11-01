@@ -109,7 +109,7 @@ where
             // n_frac_digits < P
             let shift: u8 = (P as i8 - n_frac_digits) as u8;
             let divisor = ten_pow(shift);
-            Self::new_raw(div_rounded(self.coeff, divisor, None) * divisor)
+            Self::new_raw(div_i128_rounded(self.coeff, divisor, None) * divisor)
         }
     }
 
@@ -143,7 +143,9 @@ where
             // n_frac_digits < P
             let shift: u8 = (P as i8 - n_frac_digits) as u8;
             let divisor = ten_pow(shift);
-            match div_rounded(self.coeff, divisor, None).checked_mul(divisor) {
+            match div_i128_rounded(self.coeff, divisor, None)
+                .checked_mul(divisor)
+            {
                 None => None,
                 Some(coeff) => Some(Self::new_raw(coeff)),
             }
@@ -183,7 +185,7 @@ where
     /// ```
     #[inline(always)]
     fn round_into(self: Self) -> i128 {
-        div_rounded(self.coeff, ten_pow(P), None)
+        div_i128_rounded(self.coeff, ten_pow(P), None)
     }
 }
 
@@ -216,7 +218,7 @@ where
     #[inline(always)]
     fn round_into(self: Self) -> Decimal<Q> {
         Decimal::<Q> {
-            coeff: div_rounded(self.coeff, ten_pow(P - Q), None),
+            coeff: div_i128_rounded(self.coeff, ten_pow(P - Q), None),
         }
     }
 }
@@ -224,7 +226,7 @@ where
 // rounding helper
 
 /// Divide 'divident' by 'divisor' and round result according to 'mode'.
-pub(crate) fn div_rounded(
+pub(crate) fn div_i128_rounded(
     mut divident: i128,
     mut divisor: i128,
     mode: Option<RoundingMode>,
@@ -392,7 +394,7 @@ mod helper_tests {
     #[test]
     fn test_div_rounded() {
         for (divident, divisor, rnd_mode, result) in TESTDATA {
-            let quot = div_rounded(divident, divisor, Some(rnd_mode));
+            let quot = div_i128_rounded(divident, divisor, Some(rnd_mode));
             // println!("{} {} {:?}", divident, divisor, rnd_mode);
             assert_eq!(quot, result);
         }

@@ -17,7 +17,7 @@ use rust_fixed_point_decimal_core::ten_pow;
 
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
-    rounding::div_rounded,
+    rounding::div_i128_rounded,
     Decimal, MAX_PREC,
 };
 
@@ -89,8 +89,11 @@ where
                 Ordering::Equal => self.coeff.abs().div_mod_floor(&ten_pow(P)),
                 Ordering::Less => {
                     // Important: first round, then take abs() !
-                    let coeff =
-                        div_rounded(self.coeff, ten_pow(P - prec as u8), None);
+                    let coeff = div_i128_rounded(
+                        self.coeff,
+                        ten_pow(P - prec as u8),
+                        None,
+                    );
                     coeff.abs().div_mod_floor(&ten_pow(prec as u8))
                 }
                 Ordering::Greater => {

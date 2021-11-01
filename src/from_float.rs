@@ -15,7 +15,7 @@ use rust_fixed_point_decimal_core::ten_pow;
 use crate::{
     errors::DecimalError,
     prec_constraints::{PrecLimitCheck, True},
-    rounding::div_rounded,
+    rounding::div_i128_rounded,
     Decimal,
 };
 
@@ -47,7 +47,7 @@ macro_rules! impl_from_float {
                         * i128::from(mantissa)
                         * ten_pow(P);
                     let denom = i128::one() << ((-exponent) as usize);
-                    let coeff = div_rounded(numer, denom, None);
+                    let coeff = div_i128_rounded(numer, denom, None);
                     Ok(Decimal { coeff })
                 } else {
                     let mut numer = BigInt::from(mantissa);

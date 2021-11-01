@@ -14,7 +14,7 @@ use rust_fixed_point_decimal_core::ten_pow;
 
 use crate::{
     prec_constraints::{PrecLimitCheck, True},
-    rounding::div_rounded,
+    rounding::div_i128_rounded,
     Decimal, DecimalError, MAX_PREC,
 };
 
@@ -38,17 +38,17 @@ where
         }
         match P.cmp(&(Q + R)) {
             Ordering::Equal => Decimal::<R> {
-                coeff: div_rounded(self.coeff, other.coeff, None),
+                coeff: div_i128_rounded(self.coeff, other.coeff, None),
             },
             Ordering::Less => Decimal::<R> {
-                coeff: div_rounded(
+                coeff: div_i128_rounded(
                     self.coeff * ten_pow(R + Q - P),
                     other.coeff,
                     None,
                 ),
             },
             Ordering::Greater => Decimal::<R> {
-                coeff: div_rounded(
+                coeff: div_i128_rounded(
                     self.coeff,
                     other.coeff * ten_pow(P - Q - R),
                     None,
@@ -142,17 +142,20 @@ macro_rules! impl_div_rounded_decimal_and_int {
                 }
                 match P.cmp(&R) {
                     Ordering::Equal => Decimal::<R> {
-                        coeff: div_rounded(self.coeff, other as i128, None),
+                        coeff: div_i128_rounded(
+                            self.coeff,
+                            other as i128,
+                            None),
                     },
                     Ordering::Less => Decimal::<R> {
-                        coeff: div_rounded(
+                        coeff: div_i128_rounded(
                             self.coeff * ten_pow(R - P),
                             other as i128,
                             None,
                         ),
                     },
                     Ordering::Greater => Decimal::<R> {
-                        coeff: div_rounded(
+                        coeff: div_i128_rounded(
                             self.coeff,
                             other as i128 * ten_pow(P - R),
                             None,
@@ -212,7 +215,7 @@ macro_rules! impl_div_rounded_decimal_and_int {
                     panic!("{}", DecimalError::DivisionByZero);
                 }
                 Decimal::<R> {
-                    coeff: div_rounded(
+                    coeff: div_i128_rounded(
                         self as i128 * ten_pow(P + R),
                         other.coeff,
                         None,
