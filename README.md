@@ -1,3 +1,92 @@
+## Note
+
+**The developpment of this package has been ceased, in favor of
+[fpdec.rs]("https://github.com/mamrhein/fpdec.rs").**
+
+Being based on const generics, this implementation of a fixed-point Decimal
+type provides some advantages:
+
+* Compact memory representation (2 bytes),
+* Very good performance.
+
+Having the number of fractional digits as a constant type parameter provides
+the compiler with some extra opportunities to optimize the generated code. 
+For example, in the implementation of the Add trait:
+
+```
+impl<const P: u8, const Q: u8> Add<Decimal<Q>> for Decimal<P>
+where
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+    PrecLimitCheck<{ const_max_u8(P, Q) <= MAX_PREC }>: True,
+{
+    type Output = Decimal<{ const_max_u8(P, Q) }>;
+
+    fn add(self, other: Decimal<Q>) -> Self::Output {
+        match P.cmp(&Q) {
+            Ordering::Equal => Self::Output {
+                coeff: Add::add(self.coeff, other.coeff),
+            },
+            Ordering::Greater => Self::Output {
+                coeff: Add::add(
+                    self.coeff,
+                    mul_pow_ten(other.coeff, P - Q),
+                ),
+            },
+            Ordering::Less => Self::Output {
+                coeff: Add::add(
+                    mul_pow_ten(self.coeff, Q - P),
+                    other.coeff,
+                ),
+            },
+        }
+    }
+}
+```
+
+For each combination of P and Q the compiler can reduce the code for the 
+match statement to just one case.
+
+And the multiplication of two Decimals is reduced to the multiplication of two 
+integers (i128), because the resulting number of fractional digits is already
+determined at compile time:
+
+```
+impl<const P: u8, const Q: u8> Mul<Decimal<Q>> for Decimal<P>
+where
+    PrecLimitCheck<{ P <= MAX_PREC }>: True,
+    PrecLimitCheck<{ Q <= MAX_PREC }>: True,
+    PrecLimitCheck<{ (const_sum_u8(P, Q)) <= MAX_PREC }>: True,
+{
+    type Output = Decimal<{ const_sum_u8(P, Q) }>;
+
+    #[inline(always)]
+    fn mul(self, other: Decimal<Q>) -> Self::Output {
+        Self::Output {
+            coeff: self.coeff * other.coeff,
+        }
+    }
+}
+```
+
+But there are also some serious drawbacks:
+
+* The large number of variants of the generic functions results in large 
+  binary code files.
+* Because each Decimal\<P\> is a different type, there some unusual 
+  asymmetries. For example, multipliying two Decimal\<P\> does not result in a 
+  Decimal\<P\>. I.e. Decimal\<P\> does not satisfy Mul\<Self, Output = Self\> 
+  like other numerical types.
+
+Overall, the performance gains stemming from the use of const generics do not
+outweigh the disadvantages.
+
+The package [fpdec.rs]("https://github.com/mamrhein/fpdec.rs") follows the
+same objectives as this package. It does not provides the same performance,
+but avoids the drawbacks mentioned above.
+
+# ----------
+
 This crate strives to provide a fast implementation of `Decimal` fixed-point 
 arithmetics.
 
