@@ -6,7 +6,7 @@
 Being based on const generics, this implementation of a fixed-point Decimal
 type provides some advantages:
 
-* Compact memory representation (2 bytes),
+* Compact memory representation (16 bytes),
 * Very good performance.
 
 Having the number of fractional digits as a constant type parameter provides
@@ -77,12 +77,13 @@ But there are also some serious drawbacks:
   asymmetries. For example, multipliying two Decimal\<P\> does not result in a 
   Decimal\<P\>. I.e. Decimal\<P\> does not satisfy Mul\<Self, Output = Self\> 
   like other numerical types.
+* Depends on nightly features.
 
 Overall, the performance gains stemming from the use of const generics do not
 outweigh the disadvantages.
 
 The package [fpdec.rs]("https://github.com/mamrhein/fpdec.rs") follows the
-same objectives as this package. It does not provides the same performance,
+same objectives as this package. It does not provide the same performance,
 but avoids the drawbacks mentioned above.
 
 # ----------
