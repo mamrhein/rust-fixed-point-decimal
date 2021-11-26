@@ -1,6 +1,6 @@
 [package]
 name = "rust-fixed-point-decimal-macros"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Michael Amrhein <michael@adrhinum.de>"]
 description = "Macros used to ease instantiation of Decimal numbers."
