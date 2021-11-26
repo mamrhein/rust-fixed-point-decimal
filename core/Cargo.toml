@@ -1,6 +1,6 @@
 [package]
 name = "rust-fixed-point-decimal-core"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Michael Amrhein <michael@adrhinum.de>"]
 description = "Common constants and functions."
